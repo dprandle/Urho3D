@@ -27,6 +27,7 @@ generated/
 /Source/Urho3D/Urho3D.pc.msvc
 /Source/Urho3D/Urho3DAll.h
 /Source/Urho3D/librevision.h
+build/
 
 # Compiled shaders
 *.vs?
@@ -109,3 +110,4 @@ configure*
 *.bak
 Thumbs.db
 .directory
+.vscode/
