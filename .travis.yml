@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2008-2018 the Urho3D project.
+# Copyright (c) 2008-2019 the Urho3D project.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -23,9 +23,8 @@
 ---
 
 dist: trusty
-sudo: required
-addons: {apt: {packages: docker-ce}}
-cache: {directories: $HOME/urho3d_home_dir/.ccache}
+addons: {apt: {packages: [docker-ce]}}
+cache: {directories: [$HOME/urho3d_home_dir/.ccache]}
 env:
   global:
     - secure: SLJCjkjDsTMbCIV9Wecz5JATnhk0fuzlnLMeZdvvFDv+8NL8cXyutkU0VfyRSLf3HSD1Js79a6fRMROyVGWj/w/BRrjqGnZzsB6+ZeJNnadiVIF5Gh+w90We5ccvSp2G4DyYgwkNnkKlJK7zNEWGu/K+bHL1EOCA+EIVrFMyA44=
@@ -106,6 +105,7 @@ matrix:
 
 branch: {name: MinGW-CI, active: yes, appveyor: yes}
 version: '{build}'
+image: Visual Studio 2019
 platform:
   - x86
   - x64
@@ -168,13 +168,12 @@ language: cpp
 compiler: gcc
 cache: ccache
 dist: trusty
-sudo: false
 addons:
   apt:
-    packages: libpulse-dev
+    packages: [libpulse-dev]
   coverity_scan:
     project:
-      name: urho3d/Urho3D
+      name: $TRAVIS_REPO_SLUG
       description: Urho3D is a free lightweight, cross-platform 2D and 3D game engine implemented in C++ and released under the MIT license. Greatly inspired by OGRE and Horde3D.
     notification_email: urho3d.travis.ci@gmail.com
     build_command_prepend: rake cmake URHO3D_LUA=0 URHO3D_SAMPLES=1 URHO3D_TOOLS=1 URHO3D_EXTRAS=1 URHO3D_DATABASE_SQLITE=1 URHO3D_LIB_TYPE=SHARED
@@ -201,7 +200,8 @@ branch: {name: Annotate, active: no}
 language: cpp
 compiler: gcc
 cache: ccache
-addons: {apt: {packages: libpulse-dev}}
+dist: trusty
+addons: {apt: {packages: [libpulse-dev]}}
 env:
   global:
     - secure: SLJCjkjDsTMbCIV9Wecz5JATnhk0fuzlnLMeZdvvFDv+8NL8cXyutkU0VfyRSLf3HSD1Js79a6fRMROyVGWj/w/BRrjqGnZzsB6+ZeJNnadiVIF5Gh+w90We5ccvSp2G4DyYgwkNnkKlJK7zNEWGu/K+bHL1EOCA+EIVrFMyA44=
@@ -221,8 +221,7 @@ after_script: rake ci_delete_mirror
 
 branch: {name: Android-CI, active: yes}
 dist: trusty
-sudo: required
-addons: {apt: {packages: docker-ce}}
+addons: {apt: {packages: [docker-ce]}}
 cache:
   directories:
     - $HOME/urho3d_home_dir/.android/build-cache
@@ -234,27 +233,24 @@ env:
   global:
     - secure: SLJCjkjDsTMbCIV9Wecz5JATnhk0fuzlnLMeZdvvFDv+8NL8cXyutkU0VfyRSLf3HSD1Js79a6fRMROyVGWj/w/BRrjqGnZzsB6+ZeJNnadiVIF5Gh+w90We5ccvSp2G4DyYgwkNnkKlJK7zNEWGu/K+bHL1EOCA+EIVrFMyA44=
     - secure: ecj/PwpbHkH9AYFsc2TMeRuNm5E3xMM8A0x4AcGhzpwDuZWdFx3R1T4G9u45Z5aUyTJWGqOeX1JPaEVVFZuYnNBKRy0kmiUrM9EE0j7WsT57K48tP1ysn2ynyvHgbYkKOfYR0t8XAMWTBbulT9DVVk3DS69//2WgiXGDVUEJTyI=
+    - secure: S6Vb3QUW8mDLkLrsIRSullTjwHM1ZIeG4rUT1Nwqx4XSovTZDvq9OThrzAvnuA6sYzeyDI2WHCeBUgmiKFyVBiB2NZwZZjRlTTAC2GVyRZKph9ErhJH3O0DfbPErICQAxL+RI6uCU6nSRPzq4L64UbZi5t04n6f95JXWmfeX2oY=
     - ANDROID=1
     - ORG_GRADLE_PROJECT_URHO3D_LUAJIT=1
+    - HOT=$HOME/urho3d_home_dir/.ccache/.hot
   matrix:
-    - ORG_GRADLE_PROJECT_ANDROID_ABI=x86 ORG_GRADLE_PROJECT_URHO3D_LIB_TYPE=STATIC
-    - ORG_GRADLE_PROJECT_ANDROID_ABI=x86 ORG_GRADLE_PROJECT_URHO3D_LIB_TYPE=SHARED
-    - ORG_GRADLE_PROJECT_ANDROID_ABI=x86_64 ORG_GRADLE_PROJECT_URHO3D_LIB_TYPE=STATIC
-    - ORG_GRADLE_PROJECT_ANDROID_ABI=x86_64 ORG_GRADLE_PROJECT_URHO3D_LIB_TYPE=SHARED
-    - ORG_GRADLE_PROJECT_ANDROID_ABI=armeabi-v7a ORG_GRADLE_PROJECT_URHO3D_LIB_TYPE=STATIC
-    - ORG_GRADLE_PROJECT_ANDROID_ABI=armeabi-v7a ORG_GRADLE_PROJECT_URHO3D_LIB_TYPE=SHARED
-    - ORG_GRADLE_PROJECT_ANDROID_ABI=arm64-v8a ORG_GRADLE_PROJECT_URHO3D_LIB_TYPE=STATIC
-    - ORG_GRADLE_PROJECT_ANDROID_ABI=arm64-v8a ORG_GRADLE_PROJECT_URHO3D_LIB_TYPE=SHARED
-stage: split ABI build configuration
+    - ORG_GRADLE_PROJECT_URHO3D_LIB_TYPE=STATIC
+    - ORG_GRADLE_PROJECT_URHO3D_LIB_TYPE=SHARED
+stage: universal build configuration
 before_script:
   - rake ci_timer
   - export TRAVIS_COMMIT=$TRAVIS_COMMIT~
   - export COMMIT_MESSAGE=$(git log --format=%B -n1 $TRAVIS_COMMIT)
   - export TAG=$(git describe --exact-match $TRAVIS_COMMIT 2>/dev/null); if [[ $TAG =~ [[:digit:]]+\.[[:digit:]]+ ]]; then export RELEASE_TAG=$TAG; fi
-  - if [[ $RELEASE_TAG ]] || (! [[ $TRAVIS_BRANCH =~ [^-]+-[^-]+-CI ]] && echo $COMMIT_MESSAGE |grep -cq '\[ci package\]'); then export PACKAGE_UPLOAD=1; fi
+  - if [[ $RELEASE_TAG ]] || (! [[ $TRAVIS_BRANCH =~ [^-]+-[^-]+-CI ]] && echo $COMMIT_MESSAGE |grep -cq '\[ci package\]'); then export bintrayUpload=bintrayUpload; fi
+  - if (echo $COMMIT_MESSAGE |grep -cq '\[cache clear\]' || [[ ! -e $HOT ]]); then export ORG_GRADLE_PROJECT_ANDROID_ABI=arm64-v8a,armeabi-v7a; unset bintrayUpload; fi; touch $HOT
   - if [[ "$ORG_GRADLE_PROJECT_URHO3D_LIB_TYPE" == "STATIC" ]]; then export ORG_GRADLE_PROJECT_URHO3D_SAMPLES=0; fi
   - rake ci_setup_cache
-script: script/dockerized.sh android ./gradlew build publishToMavenLocal --console plain && if [[ $PACKAGE_UPLOAD ]]; then script/dockerized.sh android rake ci_package_upload; fi && rake ci_timer
+script: script/dockerized.sh android ./gradlew build $bintrayUpload --console plain && rake ci_timer
 matrix:
   fast_finish: true
   include: [stage: housekeep]
@@ -263,9 +259,8 @@ matrix:
 
 branch: {name: RPI-CI, active: yes}
 dist: trusty
-sudo: required
-addons: {apt: {packages: docker-ce}}
-cache: {directories: $HOME/urho3d_home_dir/.ccache}
+addons: {apt: {packages: [docker-ce]}}
+cache: {directories: [$HOME/urho3d_home_dir/.ccache]}
 env:
   global:
     - secure: SLJCjkjDsTMbCIV9Wecz5JATnhk0fuzlnLMeZdvvFDv+8NL8cXyutkU0VfyRSLf3HSD1Js79a6fRMROyVGWj/w/BRrjqGnZzsB6+ZeJNnadiVIF5Gh+w90We5ccvSp2G4DyYgwkNnkKlJK7zNEWGu/K+bHL1EOCA+EIVrFMyA44=
@@ -296,9 +291,8 @@ matrix:
 
 branch: {name: ARM-CI, active: yes}
 dist: trusty
-sudo: required
-addons: {apt: {packages: docker-ce}}
-cache: {directories: $HOME/urho3d_home_dir/.ccache}
+addons: {apt: {packages: [docker-ce]}}
+cache: {directories: [$HOME/urho3d_home_dir/.ccache]}
 env:
   global:
     - secure: SLJCjkjDsTMbCIV9Wecz5JATnhk0fuzlnLMeZdvvFDv+8NL8cXyutkU0VfyRSLf3HSD1Js79a6fRMROyVGWj/w/BRrjqGnZzsB6+ZeJNnadiVIF5Gh+w90We5ccvSp2G4DyYgwkNnkKlJK7zNEWGu/K+bHL1EOCA+EIVrFMyA44=
@@ -329,8 +323,7 @@ matrix:
 
 branch: {name: Web-CI, active: yes}
 dist: trusty
-sudo: required
-addons: {apt: {packages: docker-ce}}
+addons: {apt: {packages: [docker-ce]}}
 cache:
   directories:
     - $HOME/urho3d_home_dir/.ccache
@@ -385,7 +378,7 @@ cache:
   directories:
     - $HOME/.ccache
     - $HOME/initial-build-tree
-osx_image: xcode9.4
+osx_image: xcode11
 env:
   global:
     - secure: SLJCjkjDsTMbCIV9Wecz5JATnhk0fuzlnLMeZdvvFDv+8NL8cXyutkU0VfyRSLf3HSD1Js79a6fRMROyVGWj/w/BRrjqGnZzsB6+ZeJNnadiVIF5Gh+w90We5ccvSp2G4DyYgwkNnkKlJK7zNEWGu/K+bHL1EOCA+EIVrFMyA44=
@@ -395,10 +388,10 @@ env:
     - CCACHE_SLOPPINESS=pch_defines,time_macros
     - CCACHE_COMPRESS=1
   matrix:
-    - XCODE=1 TVOS=1 URHO3D_LIB_TYPE=STATIC APPLETVOS_DEPLOYMENT_TARGET=11.2 sdk=appletvsimulator
-    - XCODE=1 IOS=1 URHO3D_LIB_TYPE=STATIC IPHONEOS_DEPLOYMENT_TARGET=11.2 sdk=iphonesimulator
-    - XCODE=1 URHO3D_LIB_TYPE=STATIC CMAKE_OSX_DEPLOYMENT_TARGET=10.13 SF_DEFAULT=mac:OSX-64bit-STATIC.tar.gz
-    - XCODE=1 URHO3D_LIB_TYPE=SHARED CMAKE_OSX_DEPLOYMENT_TARGET=10.13
+    - XCODE=1 TVOS=1 URHO3D_LIB_TYPE=STATIC APPLETVOS_DEPLOYMENT_TARGET=13.0 sdk=appletvsimulator
+    - XCODE=1 IOS=1 URHO3D_LIB_TYPE=STATIC IPHONEOS_DEPLOYMENT_TARGET=13.0 sdk=iphonesimulator
+    - XCODE=1 URHO3D_LIB_TYPE=STATIC CMAKE_OSX_DEPLOYMENT_TARGET=10.14 SF_DEFAULT=mac:OSX-64bit-STATIC.tar.gz
+    - XCODE=1 URHO3D_LIB_TYPE=SHARED CMAKE_OSX_DEPLOYMENT_TARGET=10.14
     - MAKEFILE=1 URHO3D_LIB_TYPE=STATIC URHO3D_DEPLOYMENT_TARGET=generic
     - MAKEFILE=1 URHO3D_LIB_TYPE=SHARED URHO3D_DEPLOYMENT_TARGET=generic
 stage: release build configuration

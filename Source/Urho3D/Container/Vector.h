@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2018 the Urho3D project.
+// Copyright (c) 2008-2019 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -77,6 +77,12 @@ public:
     Vector(const Vector<T>& vector)
     {
         DoInsertElements(0, vector.Begin(), vector.End(), CopyTag{});
+    }
+
+    /// Copy-construct from another vector (iterator version)
+    Vector(ConstIterator start, ConstIterator end)
+    {
+        DoInsertElements(0, start, end, CopyTag{});
     }
 
     /// Move-construct from another vector.
