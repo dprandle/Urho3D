@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2019 the Urho3D project.
+// Copyright (c) 2008-2020 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -44,18 +44,23 @@ public:
     void DrawDebugGeometry(DebugRenderer* debug, bool depthTest) override;
 
     /// Get the area id for this volume.
+    /// @property
     unsigned GetAreaID() const { return (unsigned)areaID_; }
 
     /// Set the area id for this volume.
+    /// @property
     void SetAreaID(unsigned newID);
 
     /// Get the bounding box of this navigation area, in local space.
+    /// @property
     BoundingBox GetBoundingBox() const { return boundingBox_; }
 
     /// Set the bounding box of this area, in local space.
+    /// @property
     void SetBoundingBox(const BoundingBox& bnds) { boundingBox_ = bnds; }
 
     /// Get the bounds of this navigation area in world space.
+    /// @property
     BoundingBox GetWorldBoundingBox() const;
 
 private:

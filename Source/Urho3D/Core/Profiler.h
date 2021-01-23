@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2019 the Urho3D project.
+// Copyright (c) 2008-2020 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -30,6 +30,7 @@ namespace Urho3D
 {
 
 /// Profiling data for one block in the profiling tree.
+/// @nobind
 class URHO3D_API ProfilerBlock
 {
 public:
@@ -227,7 +228,8 @@ protected:
     unsigned intervalFrames_;
 };
 
-/// Helper class for automatically beginning and ending a profiling block
+/// Helper class for automatically beginning and ending a profiling block.
+/// @nobind
 class URHO3D_API AutoProfileBlock
 {
 public:

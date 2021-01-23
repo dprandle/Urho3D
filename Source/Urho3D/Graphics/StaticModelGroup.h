@@ -1,5 +1,5 @@
 //
-// Copyright (c) 2008-2019 the Urho3D project.
+// Copyright (c) 2008-2020 the Urho3D project.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -59,9 +59,11 @@ public:
     void RemoveAllInstanceNodes();
 
     /// Return number of instance nodes.
+    /// @property
     unsigned GetNumInstanceNodes() const { return instanceNodes_.Size(); }
 
     /// Return instance node by index.
+    /// @property{get_instanceNodes}
     Node* GetInstanceNode(unsigned index) const;
 
     /// Set node IDs attribute.

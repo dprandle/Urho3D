@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2008-2019 the Urho3D project.
+# Copyright (c) 2008-2020 the Urho3D project.
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -135,21 +135,18 @@ if (NOT ANDROID AND NOT ARM AND NOT WEB)
     endif ()
 endif ()
 
-# Urho3D game engine library
 add_subdirectory (Urho3D)
 
-# Urho3D Clang tools
 if (URHO3D_CLANG_TOOLS)
     add_subdirectory (Clang-Tools)
 endif ()
 
-# Urho3D tools
-add_subdirectory (Tools)
+# In order to get clean module segregation, always exclude player/samples from AAR
+if (NOT ANDROID)
+    add_subdirectory (Tools)
+    add_subdirectory (Samples)
+endif ()
 
-# Urho3D samples
-add_subdirectory (Samples)
-
-# Urho3D extras
 if (URHO3D_EXTRAS)
     add_subdirectory (Extras)
 endif ()
