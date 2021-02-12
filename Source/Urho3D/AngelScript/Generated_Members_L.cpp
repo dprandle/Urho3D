@@ -33,10 +33,17 @@ static Light* Light_Light_Context()
 }
 
 // void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
-static void Light_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(Light* ptr, CScriptArray* exceptions, bool onlyUserData)
+static void Light_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(Light* ptr, CScriptArray* exceptions_conv, bool onlyUserData)
 {
-    PODVector<StringHash> param0 = ArrayToPODVector<StringHash>(exceptions);
-    ptr->UnsubscribeFromAllEventsExcept(param0, onlyUserData);
+    PODVector<StringHash> exceptions = ArrayToPODVector<StringHash>(exceptions_conv);
+    ptr->UnsubscribeFromAllEventsExcept(exceptions, onlyUserData);
+}
+
+// void UIElement::AddTags(const StringVector& tags) | File: ../UI/UIElement.h
+static void LineEdit_AddTags_StringVector(LineEdit* ptr, CScriptArray* tags_conv)
+{
+    StringVector tags = ArrayToVector<String>(tags_conv);
+    ptr->AddTags(tags);
 }
 
 // const Vector<SharedPtr<UIElement>>& UIElement::GetChildren() const | File: ../UI/UIElement.h
@@ -73,11 +80,25 @@ static LineEdit* LineEdit_LineEdit_Context()
     return new LineEdit(GetScriptContext());
 }
 
-// void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
-static void LineEdit_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(LineEdit* ptr, CScriptArray* exceptions, bool onlyUserData)
+// void UIElement::SetTags(const StringVector& tags) | File: ../UI/UIElement.h
+static void LineEdit_SetTags_StringVector(LineEdit* ptr, CScriptArray* tags_conv)
 {
-    PODVector<StringHash> param0 = ArrayToPODVector<StringHash>(exceptions);
-    ptr->UnsubscribeFromAllEventsExcept(param0, onlyUserData);
+    StringVector tags = ArrayToVector<String>(tags_conv);
+    ptr->SetTags(tags);
+}
+
+// void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
+static void LineEdit_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(LineEdit* ptr, CScriptArray* exceptions_conv, bool onlyUserData)
+{
+    PODVector<StringHash> exceptions = ArrayToPODVector<StringHash>(exceptions_conv);
+    ptr->UnsubscribeFromAllEventsExcept(exceptions, onlyUserData);
+}
+
+// void UIElement::AddTags(const StringVector& tags) | File: ../UI/UIElement.h
+static void ListView_AddTags_StringVector(ListView* ptr, CScriptArray* tags_conv)
+{
+    StringVector tags = ArrayToVector<String>(tags_conv);
+    ptr->AddTags(tags);
 }
 
 // const Vector<SharedPtr<UIElement>>& UIElement::GetChildren() const | File: ../UI/UIElement.h
@@ -136,17 +157,24 @@ static ListView* ListView_ListView_Context()
 }
 
 // void ListView::SetSelections(const PODVector<unsigned>& indices) | File: ../UI/ListView.h
-static void ListView_SetSelections_PODVectorunsigned(ListView* ptr, CScriptArray* indices)
+static void ListView_SetSelections_PODVectorunsigned(ListView* ptr, CScriptArray* indices_conv)
 {
-    PODVector<unsigned> param0 = ArrayToPODVector<unsigned>(indices);
-    ptr->SetSelections(param0);
+    PODVector<unsigned> indices = ArrayToPODVector<unsigned>(indices_conv);
+    ptr->SetSelections(indices);
+}
+
+// void UIElement::SetTags(const StringVector& tags) | File: ../UI/UIElement.h
+static void ListView_SetTags_StringVector(ListView* ptr, CScriptArray* tags_conv)
+{
+    StringVector tags = ArrayToVector<String>(tags_conv);
+    ptr->SetTags(tags);
 }
 
 // void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
-static void ListView_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(ListView* ptr, CScriptArray* exceptions, bool onlyUserData)
+static void ListView_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(ListView* ptr, CScriptArray* exceptions_conv, bool onlyUserData)
 {
-    PODVector<StringHash> param0 = ArrayToPODVector<StringHash>(exceptions);
-    ptr->UnsubscribeFromAllEventsExcept(param0, onlyUserData);
+    PODVector<StringHash> exceptions = ArrayToPODVector<StringHash>(exceptions_conv);
+    ptr->UnsubscribeFromAllEventsExcept(exceptions, onlyUserData);
 }
 
 // explicit Localization::Localization(Context* context) | File: ../Resource/Localization.h
@@ -156,10 +184,10 @@ static Localization* Localization_Localization_Context()
 }
 
 // void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
-static void Localization_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(Localization* ptr, CScriptArray* exceptions, bool onlyUserData)
+static void Localization_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(Localization* ptr, CScriptArray* exceptions_conv, bool onlyUserData)
 {
-    PODVector<StringHash> param0 = ArrayToPODVector<StringHash>(exceptions);
-    ptr->UnsubscribeFromAllEventsExcept(param0, onlyUserData);
+    PODVector<StringHash> exceptions = ArrayToPODVector<StringHash>(exceptions_conv);
+    ptr->UnsubscribeFromAllEventsExcept(exceptions, onlyUserData);
 }
 
 // explicit Log::Log(Context* context) | File: ../IO/Log.h
@@ -169,17 +197,17 @@ static Log* Log_Log_Context()
 }
 
 // void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
-static void Log_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(Log* ptr, CScriptArray* exceptions, bool onlyUserData)
+static void Log_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(Log* ptr, CScriptArray* exceptions_conv, bool onlyUserData)
 {
-    PODVector<StringHash> param0 = ArrayToPODVector<StringHash>(exceptions);
-    ptr->UnsubscribeFromAllEventsExcept(param0, onlyUserData);
+    PODVector<StringHash> exceptions = ArrayToPODVector<StringHash>(exceptions_conv);
+    ptr->UnsubscribeFromAllEventsExcept(exceptions, onlyUserData);
 }
 
 // void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
-static void LogicComponent_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(LogicComponent* ptr, CScriptArray* exceptions, bool onlyUserData)
+static void LogicComponent_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(LogicComponent* ptr, CScriptArray* exceptions_conv, bool onlyUserData)
 {
-    PODVector<StringHash> param0 = ArrayToPODVector<StringHash>(exceptions);
-    ptr->UnsubscribeFromAllEventsExcept(param0, onlyUserData);
+    PODVector<StringHash> exceptions = ArrayToPODVector<StringHash>(exceptions_conv);
+    ptr->UnsubscribeFromAllEventsExcept(exceptions, onlyUserData);
 }
 
 void ASRegisterGenerated_Members_L(asIScriptEngine* engine)
@@ -263,7 +291,7 @@ void ASRegisterGenerated_Members_L(asIScriptEngine* engine)
     // template<class T> void Component::GetComponents(PODVector<T*>& dest) const | File: ../Scene/Component.h
     // Not registered because template
     // Context* Object::GetContext() const | File: ../Core/Object.h
-    // Error: type "Context*" can not be returned
+    // Error: type "Context*" can used only as function parameter
     // virtual void Component::GetDependencyNodes(PODVector<Node*>& dest) | File: ../Scene/Component.h
     // Error: type "PODVector<Node*>&" can not automatically bind
     // float Drawable::GetDistance() const | File: ../Graphics/Drawable.h
@@ -546,7 +574,7 @@ void ASRegisterGenerated_Members_L(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Light", "int Refs() const", asMETHODPR(Light, Refs, () const, int), asCALL_THISCALL);
     engine->RegisterObjectMethod("Light", "int get_refs() const", asMETHODPR(Light, Refs, () const, int), asCALL_THISCALL);
     // static void Light::RegisterObject(Context* context) | File: ../Graphics/Light.h
-    // Context can be used as firs parameter of constructors only
+    // Not registered because have @nobind mark
     // void RefCounted::ReleaseRef() | File: ../Container/RefCounted.h
     engine->RegisterObjectBehaviour("Light", asBEHAVE_RELEASE, "void f()", asMETHODPR(Light, ReleaseRef, (), void), asCALL_THISCALL);
     // void Component::Remove() | File: ../Scene/Component.h
@@ -801,7 +829,7 @@ void ASRegisterGenerated_Members_L(asIScriptEngine* engine)
     // void UIElement::AddTags(const String& tags, char separator=';') | File: ../UI/UIElement.h
     engine->RegisterObjectMethod("LineEdit", "void AddTags(const String&in, int8 = ';')", asMETHODPR(LineEdit, AddTags, (const String&, char), void), asCALL_THISCALL);
     // void UIElement::AddTags(const StringVector& tags) | File: ../UI/UIElement.h
-    // Error: type "const StringVector&" can not automatically bind
+    engine->RegisterObjectMethod("LineEdit", "void AddTags(Array<String>@+)", asFUNCTION(LineEdit_AddTags_StringVector), asCALL_CDECL_OBJFIRST);
     // void UIElement::AdjustScissor(IntRect& currentScissor) | File: ../UI/UIElement.h
     engine->RegisterObjectMethod("LineEdit", "void AdjustScissor(IntRect&)", asMETHODPR(LineEdit, AdjustScissor, (IntRect&), void), asCALL_THISCALL);
     // void Serializable::AllocateNetworkState() | File: ../Scene/Serializable.h
@@ -922,7 +950,7 @@ void ASRegisterGenerated_Members_L(asIScriptEngine* engine)
     engine->RegisterObjectMethod("LineEdit", "IntRect GetCombinedScreenRect()", asMETHODPR(LineEdit, GetCombinedScreenRect, (), IntRect), asCALL_THISCALL);
     engine->RegisterObjectMethod("LineEdit", "IntRect get_combinedScreenRect()", asMETHODPR(LineEdit, GetCombinedScreenRect, (), IntRect), asCALL_THISCALL);
     // Context* Object::GetContext() const | File: ../Core/Object.h
-    // Error: type "Context*" can not be returned
+    // Error: type "Context*" can used only as function parameter
     // BorderImage* LineEdit::GetCursor() const | File: ../UI/LineEdit.h
     engine->RegisterObjectMethod("LineEdit", "BorderImage@+ GetCursor() const", asMETHODPR(LineEdit, GetCursor, () const, BorderImage*), asCALL_THISCALL);
     engine->RegisterObjectMethod("LineEdit", "BorderImage@+ get_cursor() const", asMETHODPR(LineEdit, GetCursor, () const, BorderImage*), asCALL_THISCALL);
@@ -1296,7 +1324,7 @@ void ASRegisterGenerated_Members_L(asIScriptEngine* engine)
     engine->RegisterObjectMethod("LineEdit", "int Refs() const", asMETHODPR(LineEdit, Refs, () const, int), asCALL_THISCALL);
     engine->RegisterObjectMethod("LineEdit", "int get_refs() const", asMETHODPR(LineEdit, Refs, () const, int), asCALL_THISCALL);
     // static void LineEdit::RegisterObject(Context* context) | File: ../UI/LineEdit.h
-    // Context can be used as firs parameter of constructors only
+    // Not registered because have @nobind mark
     // void RefCounted::ReleaseRef() | File: ../Container/RefCounted.h
     engine->RegisterObjectBehaviour("LineEdit", asBEHAVE_RELEASE, "void f()", asMETHODPR(LineEdit, ReleaseRef, (), void), asCALL_THISCALL);
     // void UIElement::Remove() | File: ../UI/UIElement.h
@@ -1583,7 +1611,7 @@ void ASRegisterGenerated_Members_L(asIScriptEngine* engine)
     // bool UIElement::SetStyleAuto(XMLFile* file=nullptr) | File: ../UI/UIElement.h
     engine->RegisterObjectMethod("LineEdit", "bool SetStyleAuto(XMLFile@+ = null)", asMETHODPR(LineEdit, SetStyleAuto, (XMLFile*), bool), asCALL_THISCALL);
     // void UIElement::SetTags(const StringVector& tags) | File: ../UI/UIElement.h
-    // Error: type "const StringVector&" can not automatically bind
+    engine->RegisterObjectMethod("LineEdit", "void SetTags(Array<String>@+)", asFUNCTION(LineEdit_SetTags_StringVector), asCALL_CDECL_OBJFIRST);
     // void Serializable::SetTemporary(bool enable) | File: ../Scene/Serializable.h
     engine->RegisterObjectMethod("LineEdit", "void SetTemporary(bool)", asMETHODPR(LineEdit, SetTemporary, (bool), void), asCALL_THISCALL);
     engine->RegisterObjectMethod("LineEdit", "void set_temporary(bool)", asMETHODPR(LineEdit, SetTemporary, (bool), void), asCALL_THISCALL);
@@ -1703,7 +1731,7 @@ void ASRegisterGenerated_Members_L(asIScriptEngine* engine)
     // void UIElement::AddTags(const String& tags, char separator=';') | File: ../UI/UIElement.h
     engine->RegisterObjectMethod("ListView", "void AddTags(const String&in, int8 = ';')", asMETHODPR(ListView, AddTags, (const String&, char), void), asCALL_THISCALL);
     // void UIElement::AddTags(const StringVector& tags) | File: ../UI/UIElement.h
-    // Error: type "const StringVector&" can not automatically bind
+    engine->RegisterObjectMethod("ListView", "void AddTags(Array<String>@+)", asFUNCTION(ListView_AddTags_StringVector), asCALL_CDECL_OBJFIRST);
     // void UIElement::AdjustScissor(IntRect& currentScissor) | File: ../UI/UIElement.h
     engine->RegisterObjectMethod("ListView", "void AdjustScissor(IntRect&)", asMETHODPR(ListView, AdjustScissor, (IntRect&), void), asCALL_THISCALL);
     // void Serializable::AllocateNetworkState() | File: ../Scene/Serializable.h
@@ -1851,7 +1879,7 @@ void ASRegisterGenerated_Members_L(asIScriptEngine* engine)
     engine->RegisterObjectMethod("ListView", "UIElement@+ GetContentElement() const", asMETHODPR(ListView, GetContentElement, () const, UIElement*), asCALL_THISCALL);
     engine->RegisterObjectMethod("ListView", "UIElement@+ get_contentElement() const", asMETHODPR(ListView, GetContentElement, () const, UIElement*), asCALL_THISCALL);
     // Context* Object::GetContext() const | File: ../Core/Object.h
-    // Error: type "Context*" can not be returned
+    // Error: type "Context*" can used only as function parameter
     // virtual void UIElement::GetDebugDrawBatches(PODVector<UIBatch>& batches, PODVector<float>& vertexData, const IntRect& currentScissor) | File: ../UI/UIElement.h
     // Error: type "PODVector<UIBatch>&" can not automatically bind
     // XMLFile* UIElement::GetDefaultStyle(bool recursiveUp=true) const | File: ../UI/UIElement.h
@@ -2238,7 +2266,7 @@ void ASRegisterGenerated_Members_L(asIScriptEngine* engine)
     engine->RegisterObjectMethod("ListView", "int Refs() const", asMETHODPR(ListView, Refs, () const, int), asCALL_THISCALL);
     engine->RegisterObjectMethod("ListView", "int get_refs() const", asMETHODPR(ListView, Refs, () const, int), asCALL_THISCALL);
     // static void ListView::RegisterObject(Context* context) | File: ../UI/ListView.h
-    // Context can be used as firs parameter of constructors only
+    // Not registered because have @nobind mark
     // void RefCounted::ReleaseRef() | File: ../Container/RefCounted.h
     engine->RegisterObjectBehaviour("ListView", asBEHAVE_RELEASE, "void f()", asMETHODPR(ListView, ReleaseRef, (), void), asCALL_THISCALL);
     // void UIElement::Remove() | File: ../UI/UIElement.h
@@ -2541,7 +2569,7 @@ void ASRegisterGenerated_Members_L(asIScriptEngine* engine)
     // bool UIElement::SetStyleAuto(XMLFile* file=nullptr) | File: ../UI/UIElement.h
     engine->RegisterObjectMethod("ListView", "bool SetStyleAuto(XMLFile@+ = null)", asMETHODPR(ListView, SetStyleAuto, (XMLFile*), bool), asCALL_THISCALL);
     // void UIElement::SetTags(const StringVector& tags) | File: ../UI/UIElement.h
-    // Error: type "const StringVector&" can not automatically bind
+    engine->RegisterObjectMethod("ListView", "void SetTags(Array<String>@+)", asFUNCTION(ListView_SetTags_StringVector), asCALL_CDECL_OBJFIRST);
     // void Serializable::SetTemporary(bool enable) | File: ../Scene/Serializable.h
     engine->RegisterObjectMethod("ListView", "void SetTemporary(bool)", asMETHODPR(ListView, SetTemporary, (bool), void), asCALL_THISCALL);
     engine->RegisterObjectMethod("ListView", "void set_temporary(bool)", asMETHODPR(ListView, SetTemporary, (bool), void), asCALL_THISCALL);
@@ -2653,7 +2681,7 @@ void ASRegisterGenerated_Members_L(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Localization", "const String& GetCategory() const", asMETHODPR(Localization, GetCategory, () const, const String&), asCALL_THISCALL);
     engine->RegisterObjectMethod("Localization", "const String& get_category() const", asMETHODPR(Localization, GetCategory, () const, const String&), asCALL_THISCALL);
     // Context* Object::GetContext() const | File: ../Core/Object.h
-    // Error: type "Context*" can not be returned
+    // Error: type "Context*" can used only as function parameter
     // VariantMap& Object::GetEventDataMap() const | File: ../Core/Object.h
     engine->RegisterObjectMethod("Localization", "VariantMap& GetEventDataMap() const", asMETHODPR(Localization, GetEventDataMap, () const, VariantMap&), asCALL_THISCALL);
     // EventHandler* Object::GetEventHandler() const | File: ../Core/Object.h
@@ -2786,7 +2814,7 @@ void ASRegisterGenerated_Members_L(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Log", "const String& GetCategory() const", asMETHODPR(Log, GetCategory, () const, const String&), asCALL_THISCALL);
     engine->RegisterObjectMethod("Log", "const String& get_category() const", asMETHODPR(Log, GetCategory, () const, const String&), asCALL_THISCALL);
     // Context* Object::GetContext() const | File: ../Core/Object.h
-    // Error: type "Context*" can not be returned
+    // Error: type "Context*" can used only as function parameter
     // VariantMap& Object::GetEventDataMap() const | File: ../Core/Object.h
     engine->RegisterObjectMethod("Log", "VariantMap& GetEventDataMap() const", asMETHODPR(Log, GetEventDataMap, () const, VariantMap&), asCALL_THISCALL);
     // EventHandler* Object::GetEventHandler() const | File: ../Core/Object.h
@@ -2964,7 +2992,7 @@ void ASRegisterGenerated_Members_L(asIScriptEngine* engine)
     // template<class T> void Component::GetComponents(PODVector<T*>& dest) const | File: ../Scene/Component.h
     // Not registered because template
     // Context* Object::GetContext() const | File: ../Core/Object.h
-    // Error: type "Context*" can not be returned
+    // Error: type "Context*" can used only as function parameter
     // virtual void Component::GetDependencyNodes(PODVector<Node*>& dest) | File: ../Scene/Component.h
     // Error: type "PODVector<Node*>&" can not automatically bind
     // VariantMap& Object::GetEventDataMap() const | File: ../Core/Object.h
@@ -3067,7 +3095,7 @@ void ASRegisterGenerated_Members_L(asIScriptEngine* engine)
     engine->RegisterObjectMethod("LogicComponent", "int Refs() const", asMETHODPR(LogicComponent, Refs, () const, int), asCALL_THISCALL);
     engine->RegisterObjectMethod("LogicComponent", "int get_refs() const", asMETHODPR(LogicComponent, Refs, () const, int), asCALL_THISCALL);
     // static void Animatable::RegisterObject(Context* context) | File: ../Scene/Animatable.h
-    // Context can be used as firs parameter of constructors only
+    // Not registered because have @nobind mark
     // void RefCounted::ReleaseRef() | File: ../Container/RefCounted.h
     engine->RegisterObjectBehaviour("LogicComponent", asBEHAVE_RELEASE, "void f()", asMETHODPR(LogicComponent, ReleaseRef, (), void), asCALL_THISCALL);
     // void Component::Remove() | File: ../Scene/Component.h

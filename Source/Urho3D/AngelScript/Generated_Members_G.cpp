@@ -32,10 +32,10 @@ static CScriptArray* Geometry_GetVertexBuffers_void(Geometry* ptr)
 }
 
 // void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
-static void Geometry_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(Geometry* ptr, CScriptArray* exceptions, bool onlyUserData)
+static void Geometry_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(Geometry* ptr, CScriptArray* exceptions_conv, bool onlyUserData)
 {
-    PODVector<StringHash> param0 = ArrayToPODVector<StringHash>(exceptions);
-    ptr->UnsubscribeFromAllEventsExcept(param0, onlyUserData);
+    PODVector<StringHash> exceptions = ArrayToPODVector<StringHash>(exceptions_conv);
+    ptr->UnsubscribeFromAllEventsExcept(exceptions, onlyUserData);
 }
 
 // PODVector<int> Graphics::GetMultiSampleLevels() const | File: ../Graphics/Graphics.h
@@ -59,18 +59,18 @@ static Graphics* Graphics_Graphics_Context()
 }
 
 // bool Graphics::SetVertexBuffers(const Vector<SharedPtr<VertexBuffer>>& buffers, unsigned instanceOffset=0) | File: ../Graphics/Graphics.h
-static bool Graphics_SetVertexBuffers_VectorSharedPtrVertexBuffer_unsigned(Graphics* ptr, CScriptArray* buffers, unsigned instanceOffset)
+static bool Graphics_SetVertexBuffers_VectorSharedPtrVertexBuffer_unsigned(Graphics* ptr, CScriptArray* buffers_conv, unsigned instanceOffset)
 {
-    Vector<SharedPtr<VertexBuffer> > param0 = HandleArrayToVector<VertexBuffer>(buffers);
-    bool result = ptr->SetVertexBuffers(param0, instanceOffset);
+    Vector<SharedPtr<VertexBuffer>> buffers = HandleArrayToVector<VertexBuffer>(buffers_conv);
+    bool result = ptr->SetVertexBuffers(buffers, instanceOffset);
     return result;
 }
 
 // void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
-static void Graphics_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(Graphics* ptr, CScriptArray* exceptions, bool onlyUserData)
+static void Graphics_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(Graphics* ptr, CScriptArray* exceptions_conv, bool onlyUserData)
 {
-    PODVector<StringHash> param0 = ArrayToPODVector<StringHash>(exceptions);
-    ptr->UnsubscribeFromAllEventsExcept(param0, onlyUserData);
+    PODVector<StringHash> exceptions = ArrayToPODVector<StringHash>(exceptions_conv);
+    ptr->UnsubscribeFromAllEventsExcept(exceptions, onlyUserData);
 }
 
 #ifdef URHO3D_PHYSICS
@@ -136,7 +136,7 @@ void ASRegisterGenerated_Members_G(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Geometry", "const String& GetCategory() const", asMETHODPR(Geometry, GetCategory, () const, const String&), asCALL_THISCALL);
     engine->RegisterObjectMethod("Geometry", "const String& get_category() const", asMETHODPR(Geometry, GetCategory, () const, const String&), asCALL_THISCALL);
     // Context* Object::GetContext() const | File: ../Core/Object.h
-    // Error: type "Context*" can not be returned
+    // Error: type "Context*" can used only as function parameter
     // VariantMap& Object::GetEventDataMap() const | File: ../Core/Object.h
     engine->RegisterObjectMethod("Geometry", "VariantMap& GetEventDataMap() const", asMETHODPR(Geometry, GetEventDataMap, () const, VariantMap&), asCALL_THISCALL);
     // EventHandler* Object::GetEventHandler() const | File: ../Core/Object.h
@@ -359,7 +359,7 @@ void ASRegisterGenerated_Members_G(asIScriptEngine* engine)
     // bool Graphics::GetColorWrite() const | File: ../Graphics/Graphics.h
     engine->RegisterObjectMethod("Graphics", "bool GetColorWrite() const", asMETHODPR(Graphics, GetColorWrite, () const, bool), asCALL_THISCALL);
     // Context* Object::GetContext() const | File: ../Core/Object.h
-    // Error: type "Context*" can not be returned
+    // Error: type "Context*" can used only as function parameter
     // CullMode Graphics::GetCullMode() const | File: ../Graphics/Graphics.h
     engine->RegisterObjectMethod("Graphics", "CullMode GetCullMode() const", asMETHODPR(Graphics, GetCullMode, () const, CullMode), asCALL_THISCALL);
     // int Graphics::GetCurrentMonitor() const | File: ../Graphics/Graphics.h
@@ -680,7 +680,7 @@ void ASRegisterGenerated_Members_G(asIScriptEngine* engine)
     // void Graphics::Minimize() | File: ../Graphics/Graphics.h
     engine->RegisterObjectMethod("Graphics", "void Minimize()", asMETHODPR(Graphics, Minimize, (), void), asCALL_THISCALL);
     // bool Graphics::NeedParameterUpdate(ShaderParameterGroup group, const void* source) | File: ../Graphics/Graphics.h
-    // Error: type "void*" can not automatically bind
+    // Error: type "const void*" can not automatically bind
     // virtual void Object::OnEvent(Object* sender, StringHash eventType, VariantMap& eventData) | File: ../Core/Object.h
     engine->RegisterObjectMethod("Graphics", "void OnEvent(Object@+, StringHash, VariantMap&)", asMETHODPR(Graphics, OnEvent, (Object*, StringHash, VariantMap&), void), asCALL_THISCALL);
     // void Graphics::OnWindowMoved() | File: ../Graphics/Graphics.h

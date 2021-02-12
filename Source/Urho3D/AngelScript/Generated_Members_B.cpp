@@ -33,10 +33,17 @@ static CScriptArray* BillboardSet_GetVertexLights_void(BillboardSet* ptr)
 }
 
 // void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
-static void BillboardSet_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(BillboardSet* ptr, CScriptArray* exceptions, bool onlyUserData)
+static void BillboardSet_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(BillboardSet* ptr, CScriptArray* exceptions_conv, bool onlyUserData)
 {
-    PODVector<StringHash> param0 = ArrayToPODVector<StringHash>(exceptions);
-    ptr->UnsubscribeFromAllEventsExcept(param0, onlyUserData);
+    PODVector<StringHash> exceptions = ArrayToPODVector<StringHash>(exceptions_conv);
+    ptr->UnsubscribeFromAllEventsExcept(exceptions, onlyUserData);
+}
+
+// void UIElement::AddTags(const StringVector& tags) | File: ../UI/UIElement.h
+static void BorderImage_AddTags_StringVector(BorderImage* ptr, CScriptArray* tags_conv)
+{
+    StringVector tags = ArrayToVector<String>(tags_conv);
+    ptr->AddTags(tags);
 }
 
 // explicit BorderImage::BorderImage(Context* context) | File: ../UI/BorderImage.h
@@ -73,11 +80,18 @@ static CScriptArray* BorderImage_GetTags_void(BorderImage* ptr)
     return VectorToArray<String>(result, "Array<String>");
 }
 
-// void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
-static void BorderImage_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(BorderImage* ptr, CScriptArray* exceptions, bool onlyUserData)
+// void UIElement::SetTags(const StringVector& tags) | File: ../UI/UIElement.h
+static void BorderImage_SetTags_StringVector(BorderImage* ptr, CScriptArray* tags_conv)
 {
-    PODVector<StringHash> param0 = ArrayToPODVector<StringHash>(exceptions);
-    ptr->UnsubscribeFromAllEventsExcept(param0, onlyUserData);
+    StringVector tags = ArrayToVector<String>(tags_conv);
+    ptr->SetTags(tags);
+}
+
+// void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
+static void BorderImage_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(BorderImage* ptr, CScriptArray* exceptions_conv, bool onlyUserData)
+{
+    PODVector<StringHash> exceptions = ArrayToPODVector<StringHash>(exceptions_conv);
+    ptr->UnsubscribeFromAllEventsExcept(exceptions, onlyUserData);
 }
 
 // BoundingBox::BoundingBox(const BoundingBox& box) noexcept | File: ../Math/BoundingBox.h
@@ -128,6 +142,13 @@ static BufferedSoundStream* BufferedSoundStream_BufferedSoundStream_void()
     return new BufferedSoundStream();
 }
 
+// void UIElement::AddTags(const StringVector& tags) | File: ../UI/UIElement.h
+static void Button_AddTags_StringVector(Button* ptr, CScriptArray* tags_conv)
+{
+    StringVector tags = ArrayToVector<String>(tags_conv);
+    ptr->AddTags(tags);
+}
+
 // explicit Button::Button(Context* context) | File: ../UI/Button.h
 static Button* Button_Button_Context()
 {
@@ -162,11 +183,18 @@ static CScriptArray* Button_GetTags_void(Button* ptr)
     return VectorToArray<String>(result, "Array<String>");
 }
 
-// void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
-static void Button_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(Button* ptr, CScriptArray* exceptions, bool onlyUserData)
+// void UIElement::SetTags(const StringVector& tags) | File: ../UI/UIElement.h
+static void Button_SetTags_StringVector(Button* ptr, CScriptArray* tags_conv)
 {
-    PODVector<StringHash> param0 = ArrayToPODVector<StringHash>(exceptions);
-    ptr->UnsubscribeFromAllEventsExcept(param0, onlyUserData);
+    StringVector tags = ArrayToVector<String>(tags_conv);
+    ptr->SetTags(tags);
+}
+
+// void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
+static void Button_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(Button* ptr, CScriptArray* exceptions_conv, bool onlyUserData)
+{
+    PODVector<StringHash> exceptions = ArrayToPODVector<StringHash>(exceptions_conv);
+    ptr->UnsubscribeFromAllEventsExcept(exceptions, onlyUserData);
 }
 
 // explicit Batch::Batch(const SourceBatch& rhs) | File: ../Graphics/Batch.h
@@ -282,7 +310,7 @@ void ASRegisterGenerated_Members_B(asIScriptEngine* engine)
     // template<class T> void Component::GetComponents(PODVector<T*>& dest) const | File: ../Scene/Component.h
     // Not registered because template
     // Context* Object::GetContext() const | File: ../Core/Object.h
-    // Error: type "Context*" can not be returned
+    // Error: type "Context*" can used only as function parameter
     // virtual void Component::GetDependencyNodes(PODVector<Node*>& dest) | File: ../Scene/Component.h
     // Error: type "PODVector<Node*>&" can not automatically bind
     // float Drawable::GetDistance() const | File: ../Graphics/Drawable.h
@@ -500,7 +528,7 @@ void ASRegisterGenerated_Members_B(asIScriptEngine* engine)
     engine->RegisterObjectMethod("BillboardSet", "int Refs() const", asMETHODPR(BillboardSet, Refs, () const, int), asCALL_THISCALL);
     engine->RegisterObjectMethod("BillboardSet", "int get_refs() const", asMETHODPR(BillboardSet, Refs, () const, int), asCALL_THISCALL);
     // static void BillboardSet::RegisterObject(Context* context) | File: ../Graphics/BillboardSet.h
-    // Context can be used as firs parameter of constructors only
+    // Not registered because have @nobind mark
     // void RefCounted::ReleaseRef() | File: ../Container/RefCounted.h
     engine->RegisterObjectBehaviour("BillboardSet", asBEHAVE_RELEASE, "void f()", asMETHODPR(BillboardSet, ReleaseRef, (), void), asCALL_THISCALL);
     // void Component::Remove() | File: ../Scene/Component.h
@@ -709,7 +737,7 @@ void ASRegisterGenerated_Members_B(asIScriptEngine* engine)
     // void UIElement::AddTags(const String& tags, char separator=';') | File: ../UI/UIElement.h
     engine->RegisterObjectMethod("BorderImage", "void AddTags(const String&in, int8 = ';')", asMETHODPR(BorderImage, AddTags, (const String&, char), void), asCALL_THISCALL);
     // void UIElement::AddTags(const StringVector& tags) | File: ../UI/UIElement.h
-    // Error: type "const StringVector&" can not automatically bind
+    engine->RegisterObjectMethod("BorderImage", "void AddTags(Array<String>@+)", asFUNCTION(BorderImage_AddTags_StringVector), asCALL_CDECL_OBJFIRST);
     // void UIElement::AdjustScissor(IntRect& currentScissor) | File: ../UI/UIElement.h
     engine->RegisterObjectMethod("BorderImage", "void AdjustScissor(IntRect&)", asMETHODPR(BorderImage, AdjustScissor, (IntRect&), void), asCALL_THISCALL);
     // void Serializable::AllocateNetworkState() | File: ../Scene/Serializable.h
@@ -832,7 +860,7 @@ void ASRegisterGenerated_Members_B(asIScriptEngine* engine)
     engine->RegisterObjectMethod("BorderImage", "IntRect GetCombinedScreenRect()", asMETHODPR(BorderImage, GetCombinedScreenRect, (), IntRect), asCALL_THISCALL);
     engine->RegisterObjectMethod("BorderImage", "IntRect get_combinedScreenRect()", asMETHODPR(BorderImage, GetCombinedScreenRect, (), IntRect), asCALL_THISCALL);
     // Context* Object::GetContext() const | File: ../Core/Object.h
-    // Error: type "Context*" can not be returned
+    // Error: type "Context*" can used only as function parameter
     // virtual void UIElement::GetDebugDrawBatches(PODVector<UIBatch>& batches, PODVector<float>& vertexData, const IntRect& currentScissor) | File: ../UI/UIElement.h
     // Error: type "PODVector<UIBatch>&" can not automatically bind
     // XMLFile* UIElement::GetDefaultStyle(bool recursiveUp=true) const | File: ../UI/UIElement.h
@@ -1174,7 +1202,7 @@ void ASRegisterGenerated_Members_B(asIScriptEngine* engine)
     engine->RegisterObjectMethod("BorderImage", "int Refs() const", asMETHODPR(BorderImage, Refs, () const, int), asCALL_THISCALL);
     engine->RegisterObjectMethod("BorderImage", "int get_refs() const", asMETHODPR(BorderImage, Refs, () const, int), asCALL_THISCALL);
     // static void BorderImage::RegisterObject(Context* context) | File: ../UI/BorderImage.h
-    // Context can be used as firs parameter of constructors only
+    // Not registered because have @nobind mark
     // void RefCounted::ReleaseRef() | File: ../Container/RefCounted.h
     engine->RegisterObjectBehaviour("BorderImage", asBEHAVE_RELEASE, "void f()", asMETHODPR(BorderImage, ReleaseRef, (), void), asCALL_THISCALL);
     // void UIElement::Remove() | File: ../UI/UIElement.h
@@ -1446,7 +1474,7 @@ void ASRegisterGenerated_Members_B(asIScriptEngine* engine)
     // bool UIElement::SetStyleAuto(XMLFile* file=nullptr) | File: ../UI/UIElement.h
     engine->RegisterObjectMethod("BorderImage", "bool SetStyleAuto(XMLFile@+ = null)", asMETHODPR(BorderImage, SetStyleAuto, (XMLFile*), bool), asCALL_THISCALL);
     // void UIElement::SetTags(const StringVector& tags) | File: ../UI/UIElement.h
-    // Error: type "const StringVector&" can not automatically bind
+    engine->RegisterObjectMethod("BorderImage", "void SetTags(Array<String>@+)", asFUNCTION(BorderImage_SetTags_StringVector), asCALL_CDECL_OBJFIRST);
     // void Serializable::SetTemporary(bool enable) | File: ../Scene/Serializable.h
     engine->RegisterObjectMethod("BorderImage", "void SetTemporary(bool)", asMETHODPR(BorderImage, SetTemporary, (bool), void), asCALL_THISCALL);
     engine->RegisterObjectMethod("BorderImage", "void set_temporary(bool)", asMETHODPR(BorderImage, SetTemporary, (bool), void), asCALL_THISCALL);
@@ -1702,7 +1730,7 @@ void ASRegisterGenerated_Members_B(asIScriptEngine* engine)
     // void UIElement::AddTags(const String& tags, char separator=';') | File: ../UI/UIElement.h
     engine->RegisterObjectMethod("Button", "void AddTags(const String&in, int8 = ';')", asMETHODPR(Button, AddTags, (const String&, char), void), asCALL_THISCALL);
     // void UIElement::AddTags(const StringVector& tags) | File: ../UI/UIElement.h
-    // Error: type "const StringVector&" can not automatically bind
+    engine->RegisterObjectMethod("Button", "void AddTags(Array<String>@+)", asFUNCTION(Button_AddTags_StringVector), asCALL_CDECL_OBJFIRST);
     // void UIElement::AdjustScissor(IntRect& currentScissor) | File: ../UI/UIElement.h
     engine->RegisterObjectMethod("Button", "void AdjustScissor(IntRect&)", asMETHODPR(Button, AdjustScissor, (IntRect&), void), asCALL_THISCALL);
     // void Serializable::AllocateNetworkState() | File: ../Scene/Serializable.h
@@ -1825,7 +1853,7 @@ void ASRegisterGenerated_Members_B(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Button", "IntRect GetCombinedScreenRect()", asMETHODPR(Button, GetCombinedScreenRect, (), IntRect), asCALL_THISCALL);
     engine->RegisterObjectMethod("Button", "IntRect get_combinedScreenRect()", asMETHODPR(Button, GetCombinedScreenRect, (), IntRect), asCALL_THISCALL);
     // Context* Object::GetContext() const | File: ../Core/Object.h
-    // Error: type "Context*" can not be returned
+    // Error: type "Context*" can used only as function parameter
     // virtual void UIElement::GetDebugDrawBatches(PODVector<UIBatch>& batches, PODVector<float>& vertexData, const IntRect& currentScissor) | File: ../UI/UIElement.h
     // Error: type "PODVector<UIBatch>&" can not automatically bind
     // XMLFile* UIElement::GetDefaultStyle(bool recursiveUp=true) const | File: ../UI/UIElement.h
@@ -2182,7 +2210,7 @@ void ASRegisterGenerated_Members_B(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Button", "int Refs() const", asMETHODPR(Button, Refs, () const, int), asCALL_THISCALL);
     engine->RegisterObjectMethod("Button", "int get_refs() const", asMETHODPR(Button, Refs, () const, int), asCALL_THISCALL);
     // static void Button::RegisterObject(Context* context) | File: ../UI/Button.h
-    // Context can be used as firs parameter of constructors only
+    // Not registered because have @nobind mark
     // void RefCounted::ReleaseRef() | File: ../Container/RefCounted.h
     engine->RegisterObjectBehaviour("Button", asBEHAVE_RELEASE, "void f()", asMETHODPR(Button, ReleaseRef, (), void), asCALL_THISCALL);
     // void UIElement::Remove() | File: ../UI/UIElement.h
@@ -2472,7 +2500,7 @@ void ASRegisterGenerated_Members_B(asIScriptEngine* engine)
     // bool UIElement::SetStyleAuto(XMLFile* file=nullptr) | File: ../UI/UIElement.h
     engine->RegisterObjectMethod("Button", "bool SetStyleAuto(XMLFile@+ = null)", asMETHODPR(Button, SetStyleAuto, (XMLFile*), bool), asCALL_THISCALL);
     // void UIElement::SetTags(const StringVector& tags) | File: ../UI/UIElement.h
-    // Error: type "const StringVector&" can not automatically bind
+    engine->RegisterObjectMethod("Button", "void SetTags(Array<String>@+)", asFUNCTION(Button_SetTags_StringVector), asCALL_CDECL_OBJFIRST);
     // void Serializable::SetTemporary(bool enable) | File: ../Scene/Serializable.h
     engine->RegisterObjectMethod("Button", "void SetTemporary(bool)", asMETHODPR(Button, SetTemporary, (bool), void), asCALL_THISCALL);
     engine->RegisterObjectMethod("Button", "void set_temporary(bool)", asMETHODPR(Button, SetTemporary, (bool), void), asCALL_THISCALL);

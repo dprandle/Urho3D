@@ -26,6 +26,14 @@ static CScriptArray* XMLElement_GetStringVector_void(XMLElement* ptr)
     return VectorToArray<String>(result, "Array<String>");
 }
 
+// bool XMLElement::SetStringVector(const StringVector& value) | File: ../Resource/XMLElement.h
+static bool XMLElement_SetStringVector_StringVector(XMLElement* ptr, CScriptArray* value_conv)
+{
+    StringVector value = ArrayToVector<String>(value_conv);
+    bool result = ptr->SetStringVector(value);
+    return result;
+}
+
 // XMLElement::XMLElement(const XMLElement& rhs) | File: ../Resource/XMLElement.h
 static void XMLElement_XMLElement_XMLElement(XMLElement* ptr, const XMLElement &rhs)
 {
@@ -33,10 +41,10 @@ static void XMLElement_XMLElement_XMLElement(XMLElement* ptr, const XMLElement &
 }
 
 // void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
-static void XMLFile_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(XMLFile* ptr, CScriptArray* exceptions, bool onlyUserData)
+static void XMLFile_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(XMLFile* ptr, CScriptArray* exceptions_conv, bool onlyUserData)
 {
-    PODVector<StringHash> param0 = ArrayToPODVector<StringHash>(exceptions);
-    ptr->UnsubscribeFromAllEventsExcept(param0, onlyUserData);
+    PODVector<StringHash> exceptions = ArrayToPODVector<StringHash>(exceptions_conv);
+    ptr->UnsubscribeFromAllEventsExcept(exceptions, onlyUserData);
 }
 
 // explicit XMLFile::XMLFile(Context* context) | File: ../Resource/XMLFile.h
@@ -240,7 +248,7 @@ void ASRegisterGenerated_Members_X(asIScriptEngine* engine)
     // bool XMLElement::SetBoundingBox(const BoundingBox& value) | File: ../Resource/XMLElement.h
     engine->RegisterObjectMethod("XMLElement", "bool SetBoundingBox(const BoundingBox&in)", asMETHODPR(XMLElement, SetBoundingBox, (const BoundingBox&), bool), asCALL_THISCALL);
     // bool XMLElement::SetBuffer(const String& name, const void* data, unsigned size) | File: ../Resource/XMLElement.h
-    // Error: type "void*" can not automatically bind
+    // Error: type "const void*" can not automatically bind
     // bool XMLElement::SetBuffer(const String& name, const PODVector<unsigned char>& value) | File: ../Resource/XMLElement.h
     // Error: type "const PODVector<unsigned char>&" can not automatically bind
     // bool XMLElement::SetColor(const String& name, const Color& value) | File: ../Resource/XMLElement.h
@@ -276,7 +284,7 @@ void ASRegisterGenerated_Members_X(asIScriptEngine* engine)
     // bool XMLElement::SetString(const String& name, const String& value) | File: ../Resource/XMLElement.h
     engine->RegisterObjectMethod("XMLElement", "bool SetString(const String&in, const String&in)", asMETHODPR(XMLElement, SetString, (const String&, const String&), bool), asCALL_THISCALL);
     // bool XMLElement::SetStringVector(const StringVector& value) | File: ../Resource/XMLElement.h
-    // Error: type "const StringVector&" can not automatically bind
+    engine->RegisterObjectMethod("XMLElement", "bool SetStringVector(Array<String>@+)", asFUNCTION(XMLElement_SetStringVector_StringVector), asCALL_CDECL_OBJFIRST);
     // bool XMLElement::SetUInt(const String& name, unsigned value) | File: ../Resource/XMLElement.h
     engine->RegisterObjectMethod("XMLElement", "bool SetUInt(const String&in, uint)", asMETHODPR(XMLElement, SetUInt, (const String&, unsigned), bool), asCALL_THISCALL);
     // bool XMLElement::SetUInt64(const String& name, unsigned long long value) | File: ../Resource/XMLElement.h
@@ -334,7 +342,7 @@ void ASRegisterGenerated_Members_X(asIScriptEngine* engine)
     engine->RegisterObjectMethod("XMLFile", "const String& GetCategory() const", asMETHODPR(XMLFile, GetCategory, () const, const String&), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLFile", "const String& get_category() const", asMETHODPR(XMLFile, GetCategory, () const, const String&), asCALL_THISCALL);
     // Context* Object::GetContext() const | File: ../Core/Object.h
-    // Error: type "Context*" can not be returned
+    // Error: type "Context*" can used only as function parameter
     // pugi::xml_document* XMLFile::GetDocument() const | File: ../Resource/XMLFile.h
     // Error: type "pugi::xml_document*" can not automatically bind
     // VariantMap& Object::GetEventDataMap() const | File: ../Core/Object.h
@@ -407,7 +415,7 @@ void ASRegisterGenerated_Members_X(asIScriptEngine* engine)
     engine->RegisterObjectMethod("XMLFile", "int Refs() const", asMETHODPR(XMLFile, Refs, () const, int), asCALL_THISCALL);
     engine->RegisterObjectMethod("XMLFile", "int get_refs() const", asMETHODPR(XMLFile, Refs, () const, int), asCALL_THISCALL);
     // static void XMLFile::RegisterObject(Context* context) | File: ../Resource/XMLFile.h
-    // Context can be used as firs parameter of constructors only
+    // Not registered because have @nobind mark
     // void RefCounted::ReleaseRef() | File: ../Container/RefCounted.h
     engine->RegisterObjectBehaviour("XMLFile", asBEHAVE_RELEASE, "void f()", asMETHODPR(XMLFile, ReleaseRef, (), void), asCALL_THISCALL);
     // void Resource::ResetUseTimer() | File: ../Resource/Resource.h

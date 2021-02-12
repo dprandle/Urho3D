@@ -13,10 +13,10 @@ void FakeAddRef(void* ptr);
 void FakeReleaseRef(void* ptr);
 
 // void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
-static void ValueAnimation_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(ValueAnimation* ptr, CScriptArray* exceptions, bool onlyUserData)
+static void ValueAnimation_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(ValueAnimation* ptr, CScriptArray* exceptions_conv, bool onlyUserData)
 {
-    PODVector<StringHash> param0 = ArrayToPODVector<StringHash>(exceptions);
-    ptr->UnsubscribeFromAllEventsExcept(param0, onlyUserData);
+    PODVector<StringHash> exceptions = ArrayToPODVector<StringHash>(exceptions_conv);
+    ptr->UnsubscribeFromAllEventsExcept(exceptions, onlyUserData);
 }
 
 // explicit ValueAnimation::ValueAnimation(Context* context) | File: ../Scene/ValueAnimation.h
@@ -48,6 +48,22 @@ static CScriptArray* Variant_GetStringVector_void(Variant* ptr)
 {
     const StringVector& result = ptr->GetStringVector();
     return VectorToArray<String>(result, "Array<String>");
+}
+
+// Variant& Variant::operator=(const StringVector& rhs) | File: ../Core/Variant.h
+static Variant& Variant_operatorequals_StringVector(Variant* ptr, CScriptArray* rhs_conv)
+{
+    StringVector rhs = ArrayToVector<String>(rhs_conv);
+    Variant& result = ptr->operator=(rhs);
+    return result;
+}
+
+// bool Variant::operator==(const StringVector& rhs) const | File: ../Core/Variant.h
+static bool Variant_operatorequalsequals_StringVector(Variant* ptr, CScriptArray* rhs_conv)
+{
+    StringVector rhs = ArrayToVector<String>(rhs_conv);
+    bool result = ptr->operator==(rhs);
+    return result;
 }
 
 // Variant::Variant(int value) | File: ../Core/Variant.h
@@ -309,11 +325,19 @@ static void VectorBuffer_VectorBuffer_Deserializer_unsigned(VectorBuffer* ptr, D
     new(ptr) VectorBuffer(source, size);
 }
 
-// static unsigned VertexBuffer::GetElementOffset(const PODVector<VertexElement>& elements, VertexElementType type, VertexElementSemantic semantic, unsigned char index=0) | File: ../Graphics/VertexBuffer.h
-static unsigned VertexBuffer_GetElementOffset_PODVectorVertexElement_VertexElementType_VertexElementSemantic_unsignedchar(CScriptArray* elements, VertexElementType type, VertexElementSemantic semantic, unsigned char index)
+// bool Serializer::WriteStringVector(const StringVector& value) | File: ../IO/Serializer.h
+static bool VectorBuffer_WriteStringVector_StringVector(VectorBuffer* ptr, CScriptArray* value_conv)
 {
-    PODVector<VertexElement> param0 = ArrayToPODVector<VertexElement>(elements);
-    unsigned result = VertexBuffer::GetElementOffset(param0, type, semantic, index);
+    StringVector value = ArrayToVector<String>(value_conv);
+    bool result = ptr->WriteStringVector(value);
+    return result;
+}
+
+// static unsigned VertexBuffer::GetElementOffset(const PODVector<VertexElement>& elements, VertexElementType type, VertexElementSemantic semantic, unsigned char index=0) | File: ../Graphics/VertexBuffer.h
+static unsigned VertexBuffer_GetElementOffset_PODVectorVertexElement_VertexElementType_VertexElementSemantic_unsignedchar(CScriptArray* elements_conv, VertexElementType type, VertexElementSemantic semantic, unsigned char index)
+{
+    PODVector<VertexElement> elements = ArrayToPODVector<VertexElement>(elements_conv);
+    unsigned result = VertexBuffer::GetElementOffset(elements, type, semantic, index);
     return result;
 }
 
@@ -332,34 +356,34 @@ static CScriptArray* VertexBuffer_GetElements_unsigned(unsigned elementMask)
 }
 
 // static unsigned VertexBuffer::GetVertexSize(const PODVector<VertexElement>& elements) | File: ../Graphics/VertexBuffer.h
-static unsigned VertexBuffer_GetVertexSize_PODVectorVertexElement(CScriptArray* elements)
+static unsigned VertexBuffer_GetVertexSize_PODVectorVertexElement(CScriptArray* elements_conv)
 {
-    PODVector<VertexElement> param0 = ArrayToPODVector<VertexElement>(elements);
-    unsigned result = VertexBuffer::GetVertexSize(param0);
+    PODVector<VertexElement> elements = ArrayToPODVector<VertexElement>(elements_conv);
+    unsigned result = VertexBuffer::GetVertexSize(elements);
     return result;
 }
 
 // static bool VertexBuffer::HasElement(const PODVector<VertexElement>& elements, VertexElementType type, VertexElementSemantic semantic, unsigned char index=0) | File: ../Graphics/VertexBuffer.h
-static bool VertexBuffer_HasElement_PODVectorVertexElement_VertexElementType_VertexElementSemantic_unsignedchar(CScriptArray* elements, VertexElementType type, VertexElementSemantic semantic, unsigned char index)
+static bool VertexBuffer_HasElement_PODVectorVertexElement_VertexElementType_VertexElementSemantic_unsignedchar(CScriptArray* elements_conv, VertexElementType type, VertexElementSemantic semantic, unsigned char index)
 {
-    PODVector<VertexElement> param0 = ArrayToPODVector<VertexElement>(elements);
-    bool result = VertexBuffer::HasElement(param0, type, semantic, index);
+    PODVector<VertexElement> elements = ArrayToPODVector<VertexElement>(elements_conv);
+    bool result = VertexBuffer::HasElement(elements, type, semantic, index);
     return result;
 }
 
 // bool VertexBuffer::SetSize(unsigned vertexCount, const PODVector<VertexElement>& elements, bool dynamic=false) | File: ../Graphics/VertexBuffer.h
-static bool VertexBuffer_SetSize_unsigned_PODVectorVertexElement_bool(VertexBuffer* ptr, unsigned vertexCount, CScriptArray* elements, bool dynamic)
+static bool VertexBuffer_SetSize_unsigned_PODVectorVertexElement_bool(VertexBuffer* ptr, unsigned vertexCount, CScriptArray* elements_conv, bool dynamic)
 {
-    PODVector<VertexElement> param1 = ArrayToPODVector<VertexElement>(elements);
-    bool result = ptr->SetSize(vertexCount, param1, dynamic);
+    PODVector<VertexElement> elements = ArrayToPODVector<VertexElement>(elements_conv);
+    bool result = ptr->SetSize(vertexCount, elements, dynamic);
     return result;
 }
 
 // void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
-static void VertexBuffer_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(VertexBuffer* ptr, CScriptArray* exceptions, bool onlyUserData)
+static void VertexBuffer_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(VertexBuffer* ptr, CScriptArray* exceptions_conv, bool onlyUserData)
 {
-    PODVector<StringHash> param0 = ArrayToPODVector<StringHash>(exceptions);
-    ptr->UnsubscribeFromAllEventsExcept(param0, onlyUserData);
+    PODVector<StringHash> exceptions = ArrayToPODVector<StringHash>(exceptions_conv);
+    ptr->UnsubscribeFromAllEventsExcept(exceptions, onlyUserData);
 }
 
 // explicit VertexBuffer::VertexBuffer(Context* context, bool forceHeadless=false) | File: ../Graphics/VertexBuffer.h
@@ -390,16 +414,23 @@ static CScriptArray* View_GetOccluders_void(View* ptr)
 }
 
 // void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
-static void View_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(View* ptr, CScriptArray* exceptions, bool onlyUserData)
+static void View_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(View* ptr, CScriptArray* exceptions_conv, bool onlyUserData)
 {
-    PODVector<StringHash> param0 = ArrayToPODVector<StringHash>(exceptions);
-    ptr->UnsubscribeFromAllEventsExcept(param0, onlyUserData);
+    PODVector<StringHash> exceptions = ArrayToPODVector<StringHash>(exceptions_conv);
+    ptr->UnsubscribeFromAllEventsExcept(exceptions, onlyUserData);
 }
 
 // explicit View::View(Context* context) | File: ../Graphics/View.h
 static View* View_View_Context()
 {
     return new View(GetScriptContext());
+}
+
+// void UIElement::AddTags(const StringVector& tags) | File: ../UI/UIElement.h
+static void View3D_AddTags_StringVector(View3D* ptr, CScriptArray* tags_conv)
+{
+    StringVector tags = ArrayToVector<String>(tags_conv);
+    ptr->AddTags(tags);
 }
 
 // const Vector<SharedPtr<UIElement>>& UIElement::GetChildren() const | File: ../UI/UIElement.h
@@ -430,11 +461,18 @@ static CScriptArray* View3D_GetTags_void(View3D* ptr)
     return VectorToArray<String>(result, "Array<String>");
 }
 
-// void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
-static void View3D_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(View3D* ptr, CScriptArray* exceptions, bool onlyUserData)
+// void UIElement::SetTags(const StringVector& tags) | File: ../UI/UIElement.h
+static void View3D_SetTags_StringVector(View3D* ptr, CScriptArray* tags_conv)
 {
-    PODVector<StringHash> param0 = ArrayToPODVector<StringHash>(exceptions);
-    ptr->UnsubscribeFromAllEventsExcept(param0, onlyUserData);
+    StringVector tags = ArrayToVector<String>(tags_conv);
+    ptr->SetTags(tags);
+}
+
+// void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
+static void View3D_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(View3D* ptr, CScriptArray* exceptions_conv, bool onlyUserData)
+{
+    PODVector<StringHash> exceptions = ArrayToPODVector<StringHash>(exceptions_conv);
+    ptr->UnsubscribeFromAllEventsExcept(exceptions, onlyUserData);
 }
 
 // explicit View3D::View3D(Context* context) | File: ../UI/View3D.h
@@ -444,10 +482,10 @@ static View3D* View3D_View3D_Context()
 }
 
 // void Object::UnsubscribeFromAllEventsExcept(const PODVector<StringHash>& exceptions, bool onlyUserData) | File: ../Core/Object.h
-static void Viewport_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(Viewport* ptr, CScriptArray* exceptions, bool onlyUserData)
+static void Viewport_UnsubscribeFromAllEventsExcept_PODVectorStringHash_bool(Viewport* ptr, CScriptArray* exceptions_conv, bool onlyUserData)
 {
-    PODVector<StringHash> param0 = ArrayToPODVector<StringHash>(exceptions);
-    ptr->UnsubscribeFromAllEventsExcept(param0, onlyUserData);
+    PODVector<StringHash> exceptions = ArrayToPODVector<StringHash>(exceptions_conv);
+    ptr->UnsubscribeFromAllEventsExcept(exceptions, onlyUserData);
 }
 
 // explicit Viewport::Viewport(Context* context) | File: ../Graphics/Viewport.h
@@ -498,7 +536,7 @@ void ASRegisterGenerated_Members_V(asIScriptEngine* engine)
     engine->RegisterObjectMethod("ValueAnimation", "const String& GetCategory() const", asMETHODPR(ValueAnimation, GetCategory, () const, const String&), asCALL_THISCALL);
     engine->RegisterObjectMethod("ValueAnimation", "const String& get_category() const", asMETHODPR(ValueAnimation, GetCategory, () const, const String&), asCALL_THISCALL);
     // Context* Object::GetContext() const | File: ../Core/Object.h
-    // Error: type "Context*" can not be returned
+    // Error: type "Context*" can used only as function parameter
     // float ValueAnimation::GetEndTime() const | File: ../Scene/ValueAnimation.h
     engine->RegisterObjectMethod("ValueAnimation", "float GetEndTime() const", asMETHODPR(ValueAnimation, GetEndTime, () const, float), asCALL_THISCALL);
     // VariantMap& Object::GetEventDataMap() const | File: ../Core/Object.h
@@ -586,7 +624,7 @@ void ASRegisterGenerated_Members_V(asIScriptEngine* engine)
     engine->RegisterObjectMethod("ValueAnimation", "int Refs() const", asMETHODPR(ValueAnimation, Refs, () const, int), asCALL_THISCALL);
     engine->RegisterObjectMethod("ValueAnimation", "int get_refs() const", asMETHODPR(ValueAnimation, Refs, () const, int), asCALL_THISCALL);
     // static void ValueAnimation::RegisterObject(Context* context) | File: ../Scene/ValueAnimation.h
-    // Context can be used as firs parameter of constructors only
+    // Not registered because have @nobind mark
     // void RefCounted::ReleaseRef() | File: ../Container/RefCounted.h
     engine->RegisterObjectBehaviour("ValueAnimation", asBEHAVE_RELEASE, "void f()", asMETHODPR(ValueAnimation, ReleaseRef, (), void), asCALL_THISCALL);
     // void Resource::ResetUseTimer() | File: ../Resource/Resource.h
@@ -983,7 +1021,7 @@ void ASRegisterGenerated_Members_V(asIScriptEngine* engine)
     // Variant& Variant::operator=(const VariantVector& rhs) | File: ../Core/Variant.h
     // Error: type "const VariantVector&" can not automatically bind
     // Variant& Variant::operator=(const StringVector& rhs) | File: ../Core/Variant.h
-    // Error: type "const StringVector&" can not automatically bind
+    engine->RegisterObjectMethod("Variant", "Variant& opAssign(Array<String>@+)", asFUNCTION(Variant_operatorequals_StringVector), asCALL_CDECL_OBJFIRST);
     // Variant& Variant::operator=(const VariantMap& rhs) | File: ../Core/Variant.h
     engine->RegisterObjectMethod("Variant", "Variant& opAssign(const VariantMap&in)", asMETHODPR(Variant, operator=, (const VariantMap&), Variant&), asCALL_THISCALL);
     // Variant& Variant::operator=(const Rect& rhs) | File: ../Core/Variant.h
@@ -1045,7 +1083,7 @@ void ASRegisterGenerated_Members_V(asIScriptEngine* engine)
     // bool Variant::operator==(const VariantVector& rhs) const | File: ../Core/Variant.h
     // Error: type "const VariantVector&" can not automatically bind
     // bool Variant::operator==(const StringVector& rhs) const | File: ../Core/Variant.h
-    // Error: type "const StringVector&" can not automatically bind
+    engine->RegisterObjectMethod("Variant", "bool opEquals(Array<String>@+) const", asFUNCTION(Variant_operatorequalsequals_StringVector), asCALL_CDECL_OBJFIRST);
     // bool Variant::operator==(const VariantMap& rhs) const | File: ../Core/Variant.h
     engine->RegisterObjectMethod("Variant", "bool opEquals(const VariantMap&in) const", asMETHODPR(Variant, operator==, (const VariantMap&) const, bool), asCALL_THISCALL);
     // bool Variant::operator==(const Rect& rhs) const | File: ../Core/Variant.h
@@ -1067,7 +1105,7 @@ void ASRegisterGenerated_Members_V(asIScriptEngine* engine)
     // bool Variant::operator==(const Matrix4& rhs) const | File: ../Core/Variant.h
     engine->RegisterObjectMethod("Variant", "bool opEquals(const Matrix4&in) const", asMETHODPR(Variant, operator==, (const Matrix4&) const, bool), asCALL_THISCALL);
     // void Variant::SetBuffer(const void* data, unsigned size) | File: ../Core/Variant.h
-    // Error: type "void*" can not automatically bind
+    // Error: type "const void*" can not automatically bind
     // template<class T> void Variant::SetCustom(const T& value) | File: ../Core/Variant.h
     // Not registered because template
     // void Variant::SetCustomVariantValue(const CustomVariantValue& value) | File: ../Core/Variant.h
@@ -1604,7 +1642,7 @@ void ASRegisterGenerated_Members_V(asIScriptEngine* engine)
     // void VectorBuffer::SetData(const PODVector<unsigned char>& data) | File: ../IO/VectorBuffer.h
     // Error: type "const PODVector<unsigned char>&" can not automatically bind
     // void VectorBuffer::SetData(const void* data, unsigned size) | File: ../IO/VectorBuffer.h
-    // Error: type "void*" can not automatically bind
+    // Error: type "const void*" can not automatically bind
     // void VectorBuffer::SetData(Deserializer& source, unsigned size) | File: ../IO/VectorBuffer.h
     engine->RegisterObjectMethod("VectorBuffer", "void SetData(Deserializer&, uint)", asMETHODPR(VectorBuffer, SetData, (Deserializer&, unsigned), void), asCALL_THISCALL);
     // virtual void AbstractFile::SetName(const String& name) | File: ../IO/AbstractFile.h
@@ -1619,7 +1657,7 @@ void ASRegisterGenerated_Members_V(asIScriptEngine* engine)
     // VectorBuffer::VectorBuffer(Deserializer& source, unsigned size) | File: ../IO/VectorBuffer.h
     engine->RegisterObjectBehaviour("VectorBuffer", asBEHAVE_CONSTRUCT, "void f(Deserializer&, uint)", asFUNCTION(VectorBuffer_VectorBuffer_Deserializer_unsigned), asCALL_CDECL_OBJFIRST);
     // unsigned VectorBuffer::Write(const void* data, unsigned size) override | File: ../IO/VectorBuffer.h
-    // Error: type "void*" can not automatically bind
+    // Error: type "const void*" can not automatically bind
     // bool Serializer::WriteBool(bool value) | File: ../IO/Serializer.h
     engine->RegisterObjectMethod("VectorBuffer", "bool WriteBool(bool)", asMETHODPR(VectorBuffer, WriteBool, (bool), bool), asCALL_THISCALL);
     // bool Serializer::WriteBoundingBox(const BoundingBox& value) | File: ../IO/Serializer.h
@@ -1675,7 +1713,7 @@ void ASRegisterGenerated_Members_V(asIScriptEngine* engine)
     // bool Serializer::WriteStringHash(const StringHash& value) | File: ../IO/Serializer.h
     engine->RegisterObjectMethod("VectorBuffer", "bool WriteStringHash(const StringHash&in)", asMETHODPR(VectorBuffer, WriteStringHash, (const StringHash&), bool), asCALL_THISCALL);
     // bool Serializer::WriteStringVector(const StringVector& value) | File: ../IO/Serializer.h
-    // Error: type "const StringVector&" can not automatically bind
+    engine->RegisterObjectMethod("VectorBuffer", "bool WriteStringVector(Array<String>@+)", asFUNCTION(VectorBuffer_WriteStringVector_StringVector), asCALL_CDECL_OBJFIRST);
     // bool Serializer::WriteUByte(unsigned char value) | File: ../IO/Serializer.h
     engine->RegisterObjectMethod("VectorBuffer", "bool WriteUByte(uint8)", asMETHODPR(VectorBuffer, WriteUByte, (unsigned char), bool), asCALL_THISCALL);
     // bool Serializer::WriteUInt(unsigned value) | File: ../IO/Serializer.h
@@ -1731,7 +1769,7 @@ void ASRegisterGenerated_Members_V(asIScriptEngine* engine)
     engine->RegisterObjectMethod("VertexBuffer", "const String& GetCategory() const", asMETHODPR(VertexBuffer, GetCategory, () const, const String&), asCALL_THISCALL);
     engine->RegisterObjectMethod("VertexBuffer", "const String& get_category() const", asMETHODPR(VertexBuffer, GetCategory, () const, const String&), asCALL_THISCALL);
     // Context* Object::GetContext() const | File: ../Core/Object.h
-    // Error: type "Context*" can not be returned
+    // Error: type "Context*" can used only as function parameter
     // const VertexElement* VertexBuffer::GetElement(VertexElementSemantic semantic, unsigned char index=0) const | File: ../Graphics/VertexBuffer.h
     // Error: type "const VertexElement*" can not automatically bind
     // const VertexElement* VertexBuffer::GetElement(VertexElementType type, VertexElementSemantic semantic, unsigned char index=0) const | File: ../Graphics/VertexBuffer.h
@@ -1865,9 +1903,9 @@ void ASRegisterGenerated_Members_V(asIScriptEngine* engine)
     // void Object::SetBlockEvents(bool block) | File: ../Core/Object.h
     engine->RegisterObjectMethod("VertexBuffer", "void SetBlockEvents(bool)", asMETHODPR(VertexBuffer, SetBlockEvents, (bool), void), asCALL_THISCALL);
     // bool VertexBuffer::SetData(const void* data) | File: ../Graphics/VertexBuffer.h
-    // Error: type "void*" can not automatically bind
+    // Error: type "const void*" can not automatically bind
     // bool VertexBuffer::SetDataRange(const void* data, unsigned start, unsigned count, bool discard=false) | File: ../Graphics/VertexBuffer.h
-    // Error: type "void*" can not automatically bind
+    // Error: type "const void*" can not automatically bind
     // void Object::SetGlobalVar(StringHash key, const Variant& value) | File: ../Core/Object.h
     engine->RegisterObjectMethod("VertexBuffer", "void SetGlobalVar(StringHash, const Variant&in)", asMETHODPR(VertexBuffer, SetGlobalVar, (StringHash, const Variant&), void), asCALL_THISCALL);
     engine->RegisterObjectMethod("VertexBuffer", "void set_globalVar(StringHash, const Variant&in)", asMETHODPR(VertexBuffer, SetGlobalVar, (StringHash, const Variant&), void), asCALL_THISCALL);
@@ -1940,7 +1978,7 @@ void ASRegisterGenerated_Members_V(asIScriptEngine* engine)
     engine->RegisterObjectMethod("View", "const String& GetCategory() const", asMETHODPR(View, GetCategory, () const, const String&), asCALL_THISCALL);
     engine->RegisterObjectMethod("View", "const String& get_category() const", asMETHODPR(View, GetCategory, () const, const String&), asCALL_THISCALL);
     // Context* Object::GetContext() const | File: ../Core/Object.h
-    // Error: type "Context*" can not be returned
+    // Error: type "Context*" can used only as function parameter
     // Camera* View::GetCullCamera() const | File: ../Graphics/View.h
     engine->RegisterObjectMethod("View", "Camera@+ GetCullCamera() const", asMETHODPR(View, GetCullCamera, () const, Camera*), asCALL_THISCALL);
     // bool View::GetDrawDebug() const | File: ../Graphics/View.h
@@ -2089,7 +2127,7 @@ void ASRegisterGenerated_Members_V(asIScriptEngine* engine)
     // void UIElement::AddTags(const String& tags, char separator=';') | File: ../UI/UIElement.h
     engine->RegisterObjectMethod("View3D", "void AddTags(const String&in, int8 = ';')", asMETHODPR(View3D, AddTags, (const String&, char), void), asCALL_THISCALL);
     // void UIElement::AddTags(const StringVector& tags) | File: ../UI/UIElement.h
-    // Error: type "const StringVector&" can not automatically bind
+    engine->RegisterObjectMethod("View3D", "void AddTags(Array<String>@+)", asFUNCTION(View3D_AddTags_StringVector), asCALL_CDECL_OBJFIRST);
     // void UIElement::AdjustScissor(IntRect& currentScissor) | File: ../UI/UIElement.h
     engine->RegisterObjectMethod("View3D", "void AdjustScissor(IntRect&)", asMETHODPR(View3D, AdjustScissor, (IntRect&), void), asCALL_THISCALL);
     // void Serializable::AllocateNetworkState() | File: ../Scene/Serializable.h
@@ -2216,7 +2254,7 @@ void ASRegisterGenerated_Members_V(asIScriptEngine* engine)
     engine->RegisterObjectMethod("View3D", "IntRect GetCombinedScreenRect()", asMETHODPR(View3D, GetCombinedScreenRect, (), IntRect), asCALL_THISCALL);
     engine->RegisterObjectMethod("View3D", "IntRect get_combinedScreenRect()", asMETHODPR(View3D, GetCombinedScreenRect, (), IntRect), asCALL_THISCALL);
     // Context* Object::GetContext() const | File: ../Core/Object.h
-    // Error: type "Context*" can not be returned
+    // Error: type "Context*" can used only as function parameter
     // virtual void UIElement::GetDebugDrawBatches(PODVector<UIBatch>& batches, PODVector<float>& vertexData, const IntRect& currentScissor) | File: ../UI/UIElement.h
     // Error: type "PODVector<UIBatch>&" can not automatically bind
     // XMLFile* UIElement::GetDefaultStyle(bool recursiveUp=true) const | File: ../UI/UIElement.h
@@ -2605,7 +2643,7 @@ void ASRegisterGenerated_Members_V(asIScriptEngine* engine)
     engine->RegisterObjectMethod("View3D", "int Refs() const", asMETHODPR(View3D, Refs, () const, int), asCALL_THISCALL);
     engine->RegisterObjectMethod("View3D", "int get_refs() const", asMETHODPR(View3D, Refs, () const, int), asCALL_THISCALL);
     // static void View3D::RegisterObject(Context* context) | File: ../UI/View3D.h
-    // Context can be used as firs parameter of constructors only
+    // Not registered because have @nobind mark
     // void RefCounted::ReleaseRef() | File: ../Container/RefCounted.h
     engine->RegisterObjectBehaviour("View3D", asBEHAVE_RELEASE, "void f()", asMETHODPR(View3D, ReleaseRef, (), void), asCALL_THISCALL);
     // void UIElement::Remove() | File: ../UI/UIElement.h
@@ -2913,7 +2951,7 @@ void ASRegisterGenerated_Members_V(asIScriptEngine* engine)
     // bool UIElement::SetStyleAuto(XMLFile* file=nullptr) | File: ../UI/UIElement.h
     engine->RegisterObjectMethod("View3D", "bool SetStyleAuto(XMLFile@+ = null)", asMETHODPR(View3D, SetStyleAuto, (XMLFile*), bool), asCALL_THISCALL);
     // void UIElement::SetTags(const StringVector& tags) | File: ../UI/UIElement.h
-    // Error: type "const StringVector&" can not automatically bind
+    engine->RegisterObjectMethod("View3D", "void SetTags(Array<String>@+)", asFUNCTION(View3D_SetTags_StringVector), asCALL_CDECL_OBJFIRST);
     // void Serializable::SetTemporary(bool enable) | File: ../Scene/Serializable.h
     engine->RegisterObjectMethod("View3D", "void SetTemporary(bool)", asMETHODPR(View3D, SetTemporary, (bool), void), asCALL_THISCALL);
     engine->RegisterObjectMethod("View3D", "void set_temporary(bool)", asMETHODPR(View3D, SetTemporary, (bool), void), asCALL_THISCALL);
@@ -3028,7 +3066,7 @@ void ASRegisterGenerated_Members_V(asIScriptEngine* engine)
     engine->RegisterObjectMethod("Viewport", "const String& GetCategory() const", asMETHODPR(Viewport, GetCategory, () const, const String&), asCALL_THISCALL);
     engine->RegisterObjectMethod("Viewport", "const String& get_category() const", asMETHODPR(Viewport, GetCategory, () const, const String&), asCALL_THISCALL);
     // Context* Object::GetContext() const | File: ../Core/Object.h
-    // Error: type "Context*" can not be returned
+    // Error: type "Context*" can used only as function parameter
     // Camera* Viewport::GetCullCamera() const | File: ../Graphics/Viewport.h
     engine->RegisterObjectMethod("Viewport", "Camera@+ GetCullCamera() const", asMETHODPR(Viewport, GetCullCamera, () const, Camera*), asCALL_THISCALL);
     engine->RegisterObjectMethod("Viewport", "Camera@+ get_cullCamera() const", asMETHODPR(Viewport, GetCullCamera, () const, Camera*), asCALL_THISCALL);

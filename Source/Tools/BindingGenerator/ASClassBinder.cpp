@@ -197,45 +197,43 @@ static void RegisterStaticFunction(const ClassStaticFunctionAnalyzer& functionAn
     result->reg_ << "    // " << functionAnalyzer.GetLocation() << "\n";
 
     vector<ParamAnalyzer> params = functionAnalyzer.GetParams();
-    vector<shared_ptr<FuncParamConv> > convertedParams;
+    vector<ConvertedVariable> convertedParams;
     string outGlue;
     bool needWrapper = false;
 
-    for (size_t i = 0; i < params.size(); i++)
+    for (const ParamAnalyzer& param : params)
     {
-        ParamAnalyzer param = params[i];
-        shared_ptr<FuncParamConv> conv = CppFunctionParamToAS(i, param);
-        if (!conv->success_)
+        ConvertedVariable conv;
+        try
         {
-            result->reg_ << "    // " << conv->errorMessage_ << "\n";
+            conv = CppVariableToAS(param.GetType(), VariableUsage::FunctionParameter, param.GetDeclname(), param.GetDefval());
+        }
+        catch (const Exception& e)
+        {
+            result->reg_ << "    // " << e.what() << "\n";
             return;
         }
 
-        if (conv->NeedWrapper())
+        if (conv.NeedWrapper())
             needWrapper = true;
 
         convertedParams.push_back(conv);
     }
 
-    shared_ptr<FuncReturnTypeConv> convertedReturn = CppFunctionReturnTypeToAS(functionAnalyzer.GetReturnType());
-    if (!convertedReturn->success_)
+    ConvertedVariable convertedReturn;
+    
+    try
     {
-        result->reg_ << "    // " << GetLastErrorMessage() << "\n";
+        convertedReturn = CppVariableToAS(functionAnalyzer.GetReturnType(), VariableUsage::FunctionReturn);
+    }
+    catch (const Exception& e)
+    {
+        result->reg_ << "    // " << e.what() << "\n";
         return;
     }
 
-    if (convertedReturn->needWrapper_)
+    if (convertedReturn.NeedWrapper())
         needWrapper = true;
-
-    string declParams;
-
-    for (shared_ptr<FuncParamConv> conv : convertedParams)
-    {
-        if (declParams.length() > 0)
-            declParams += ", ";
-
-        declParams += conv->asDecl_;
-    }
 
     string asFunctionName = functionAnalyzer.GetName();
     string className = functionAnalyzer.GetClassName();
@@ -243,7 +241,7 @@ static void RegisterStaticFunction(const ClassStaticFunctionAnalyzer& functionAn
     if (needWrapper)
         result->glue_ << GenerateWrapper(functionAnalyzer, convertedParams, convertedReturn);
 
-    string decl = convertedReturn->asReturnType_ + " " + asFunctionName + "(" + declParams + ")";
+    string decl = convertedReturn.asDeclaration_ + " " + asFunctionName + "(" + JoinASDeclarations(convertedParams) + ")";
 
     result->reg_ << "    engine->SetDefaultNamespace(\"" << className << "\");\n";
 
@@ -275,7 +273,7 @@ static void RegisterRefCountedConstructor(const ClassFunctionAnalyzer& functionA
         args = CutStart(args, "Context *context");
         args = CutStart(args, ", ");
     }
-    else if (args.find("Context") != string::npos)
+    else if (Contains(args, "Context"))
     {
         result->reg_ <<
             "    // " << functionAnalyzer.GetLocation() << "\n"
@@ -307,8 +305,17 @@ static void RegisterRefCountedConstructor(const ClassFunctionAnalyzer& functionA
         if (decl.length() > 0)
             decl += ", ";
 
-        bool outSuccess;
-        decl += CppTypeToAS(param.GetType(), false, outSuccess);
+        try
+        {
+            decl += CppTypeToAS(param.GetType(), TypeUsage::FunctionParameter);
+        }
+        catch (const Exception& e)
+        {
+            result->reg_ <<
+                "    // " << functionAnalyzer.GetLocation() << "\n"
+                "    // " << e.what() << "\n";
+            return;
+        }
 
         string defval = param.GetDefval();
         if (!defval.empty())
@@ -316,14 +323,6 @@ static void RegisterRefCountedConstructor(const ClassFunctionAnalyzer& functionA
             defval = CppValueToAS(defval);
             defval = ReplaceAll(defval, "\"", "\\\"");
             decl += /*" " + param.GetDeclname() +*/ " = " + defval;
-        }
-
-        if (!outSuccess)
-        {
-            result->reg_ <<
-                "    // " << functionAnalyzer.GetLocation() << "\n"
-                "    // " << GetLastErrorMessage() << "\n";
-            return;
         }
     }
 
@@ -396,8 +395,24 @@ static void RegisterValueConstructor(const ClassFunctionAnalyzer& functionAnalyz
         if (decl.length() > 0)
             decl += ", ";
 
-        bool outSuccess;
-        decl += CppTypeToAS(param.GetType(), false, outSuccess);
+        try
+        {
+            decl += CppTypeToAS(param.GetType(), TypeUsage::FunctionParameter);
+        }
+        catch (const Exception& e)
+        {
+            if (isDefaultConstructor && !insideDefine.empty())
+                reg << "#ifdef " << insideDefine << "\n";
+
+            reg <<
+                "    // " << functionAnalyzer.GetLocation() << "\n"
+                "    // " << e.what() << "\n";
+
+            if (isDefaultConstructor && !insideDefine.empty())
+                reg << "#endif\n";
+
+            return;
+        }
 
         string defval = param.GetDefval();
         if (!defval.empty())
@@ -405,21 +420,6 @@ static void RegisterValueConstructor(const ClassFunctionAnalyzer& functionAnalyz
             defval = CppValueToAS(defval);
             defval = ReplaceAll(defval, "\"", "\\\"");
             decl += /*" " + param.GetDeclname() +*/ " = " + defval;
-        }
-
-        if (!outSuccess)
-        {
-            if (isDefaultConstructor && !insideDefine.empty())
-                reg << "#ifdef " << insideDefine << "\n";
-            
-            reg <<
-                "    // " << functionAnalyzer.GetLocation() << "\n"
-                "    // " << GetLastErrorMessage() << "\n";
-            
-            if (isDefaultConstructor && !insideDefine.empty())
-                reg << "#endif\n";
-            
-            return;
         }
     }
     decl = "void f(" + decl + ")";
@@ -536,26 +536,18 @@ static void RegisterFakeAddReleaseRef(const ClassAnalyzer& classAnalyzer)
 }
 
 // https://www.angelcode.com/angelscript/sdk/docs/manual/doc_script_class_ops.html
-string CppMethodNameToAS(const ClassFunctionAnalyzer& functionAnalyzer, bool& outSuccess)
+static string CppMethodNameToAS(const ClassFunctionAnalyzer& functionAnalyzer)
 {
     string name = functionAnalyzer.GetName();
 
     if (name == "operator=")
-    {
-        outSuccess = true;
         return "opAssign";
-    }
 
     if (name == "operator+")
-    {
-        outSuccess = true;
         return "opAdd";
-    }
 
     if (name == "operator-")
     {
-        outSuccess = true;
-
         if (!functionAnalyzer.GetParams().size()) // If no params
             return "opNeg";               // then unary minus
         else
@@ -563,58 +555,32 @@ string CppMethodNameToAS(const ClassFunctionAnalyzer& functionAnalyzer, bool& ou
     }
 
     if (name == "operator*")
-    {
-        outSuccess = true;
         return "opMul";
-    }
     
     if (name == "operator/")
-    {
-        outSuccess = true;
         return "opDiv";
-    }
     
     if (name == "operator+=")
-    {
-        outSuccess = true;
         return "opAddAssign";
-    }
     
     if (name == "operator-=")
-    {
-        outSuccess = true;
         return "opSubAssign";
-    }
     
     if (name == "operator*=")
-    {
-        outSuccess = true;
         return "opMulAssign";
-    }
     
     if (name == "operator/=")
-    {
-        outSuccess = true;
         return "opDivAssign";
-    }
     
     if (name == "operator==")
-    {
-        outSuccess = true;
         return "opEquals";
-    }
 
     if (name == "operator[]")
-    {
-        outSuccess = true;
         return "opIndex";
-    }
 
     // Conversion to another type operator
     if (StartsWith(name, "operator "))
     {
-        outSuccess = true;
-
         if (functionAnalyzer.IsExplicit())
             return "opConv";
         else
@@ -622,27 +588,14 @@ string CppMethodNameToAS(const ClassFunctionAnalyzer& functionAnalyzer, bool& ou
     }
 
     if (name == "operator!=")
-    {
-        outSuccess = false;
-        SetLastErrorMessage("Only operator== is needed");
-        return "IGNORED";
-    }
+        throw Exception("Only operator== is needed");
 
     if (name == "operator<")
-    {
-        outSuccess = false;
-        SetLastErrorMessage("Registerd as opCmp separately");
-        return "IGNORED";
-    }
+        throw Exception("Registerd as opCmp separately");
 
     if (name == "operator>")
-    {
-        outSuccess = false;
-        SetLastErrorMessage("Registerd as opCmp separately");
-        return "IGNORED";
-    }
+        throw Exception("Registerd as opCmp separately");
 
-    outSuccess = true;
     return name;
 }
 
@@ -684,13 +637,12 @@ static string GetPropertyMark(ClassFunctionAnalyzer function)
 }
 
 // https://www.angelcode.com/angelscript/sdk/docs/manual/doc_reg_objprop.html
-static string CppMethodNameToASProperty(const ClassFunctionAnalyzer& functionAnalyzer, bool& outSuccess)
+static string CppMethodNameToASProperty(const ClassFunctionAnalyzer& functionAnalyzer)
 {
     string name = functionAnalyzer.GetName();
 
     if (StartsWith(name, "Is") || StartsWith(name, "Get"))
     {
-        outSuccess = true;
         string result = CutStart(name, "Is");
         result = CutStart(result, "Get");
         result = "get_" + FirstCharToLower(result);
@@ -699,7 +651,6 @@ static string CppMethodNameToASProperty(const ClassFunctionAnalyzer& functionAna
 
     if (StartsWith(name, "Set"))
     {
-        outSuccess = true;
         string result = CutStart(name, "Set");
         result = "set_" + FirstCharToLower(result);
         return result;
@@ -707,7 +658,6 @@ static string CppMethodNameToASProperty(const ClassFunctionAnalyzer& functionAna
 
     if (functionAnalyzer.CanBeGetProperty())
     {
-        outSuccess = true;
         string result = name;
         result = "get_" + FirstCharToLower(result);
         return result;
@@ -715,15 +665,12 @@ static string CppMethodNameToASProperty(const ClassFunctionAnalyzer& functionAna
 
     if (functionAnalyzer.CanBeSetProperty())
     {
-        outSuccess = true;
         string result = name;
         result = "set_" + FirstCharToLower(result);
         return result;
     }
 
-    outSuccess = false;
-    SetLastErrorMessage("ERROR: Can not be property");
-    return "ERROR";
+    throw Exception("Can not be property");
 }
 
 static void RegisterMethod(const ClassFunctionAnalyzer& functionAnalyzer, bool templateVersion)
@@ -823,64 +770,64 @@ static void RegisterMethod(const ClassFunctionAnalyzer& functionAnalyzer, bool t
     result->reg_ << "    // " << functionAnalyzer.GetLocation() << "\n";
 
     vector<ParamAnalyzer> params = functionAnalyzer.GetParams();
-    vector<shared_ptr<FuncParamConv> > convertedParams;
+    vector<ConvertedVariable> convertedParams;
     bool needWrapper = false;
 
-    for (size_t i = 0; i < params.size(); i++)
+    for (const ParamAnalyzer& param : params)
     {
-        ParamAnalyzer param = params[i];
-        shared_ptr<FuncParamConv> conv = CppFunctionParamToAS(i, param);
-        if (!conv->success_)
+        ConvertedVariable conv;
+        
+        try
         {
-            result->reg_ << "    // " << conv->errorMessage_ << "\n";
+            conv = CppVariableToAS(param.GetType(), VariableUsage::FunctionParameter, param.GetDeclname(), param.GetDefval());
+        }
+        catch (const Exception& e)
+        {
+            result->reg_ << "    // " << e.what() << "\n";
             return;
         }
 
-        if (conv->NeedWrapper())
+        if (conv.NeedWrapper())
             needWrapper = true;
 
         convertedParams.push_back(conv);
     }
 
-    shared_ptr<FuncReturnTypeConv> retConv = CppFunctionReturnTypeToAS(functionAnalyzer.GetReturnType());
-    if (!retConv->success_)
+    ConvertedVariable retConv;
+    
+    try
     {
-        result->reg_ << "    // " << retConv->errorMessage_ << "\n";
+        retConv = CppVariableToAS(functionAnalyzer.GetReturnType(), VariableUsage::FunctionReturn);
+    }
+    catch (const Exception& e)
+    {
+        result->reg_ << "    // " << e.what() << "\n";
         return;
     }
 
-    if (retConv->needWrapper_)
+    if (retConv.NeedWrapper())
         needWrapper = true;
 
-    string declParams = "";
-
-    for (shared_ptr<FuncParamConv> conv : convertedParams)
-    {
-        if (declParams.length() > 0)
-            declParams += ", ";
-
-        declParams += conv->asDecl_;
-    }
-
-    string asReturnType = retConv->asReturnType_;
+    string asReturnType = retConv.asDeclaration_;
 
     string asFunctionName = functionAnalyzer.GetName();
     if (functionAnalyzer.IsConsversionOperator())
         asReturnType = CutStart(asFunctionName, "operator ");
-
-    bool outSuccess;
-    asFunctionName = CppMethodNameToAS(functionAnalyzer, outSuccess);
-
-    if (!outSuccess)
+    
+    try
     {
-        result->reg_ << "    // " << GetLastErrorMessage() << "\n";
+        asFunctionName = CppMethodNameToAS(functionAnalyzer);
+    }
+    catch (const Exception& e)
+    {
+        result->reg_ << "    // " << e.what() << "\n";
         return;
     }
 
     if (needWrapper)
         result->glue_ << GenerateWrapper(functionAnalyzer, templateVersion, convertedParams, retConv);
 
-    string decl = asReturnType + " " + asFunctionName + "(" + declParams + ")";
+    string decl = asReturnType + " " + asFunctionName + "(" + JoinASDeclarations(convertedParams) + ")";
 
     if (functionAnalyzer.IsConst())
         decl += " const";
@@ -905,15 +852,18 @@ static void RegisterMethod(const ClassFunctionAnalyzer& functionAnalyzer, bool t
         }
         else
         {
-            asFunctionName = CppMethodNameToASProperty(functionAnalyzer, outSuccess);
-            if (!outSuccess)
+            try
             {
-                result->reg_ << "    // " << GetLastErrorMessage() << "\n";
+                asFunctionName = CppMethodNameToASProperty(functionAnalyzer);
+            }
+            catch (const Exception& e)
+            {
+                result->reg_ << "    // " << e.what() << "\n";
                 return;
             }
         }
         
-        decl = asReturnType + " " + asFunctionName + "(" + declParams + ")";
+        decl = asReturnType + " " + asFunctionName + "(" + JoinASDeclarations(convertedParams) + ")";
 
         if (functionAnalyzer.IsConst())
             decl += " const";
@@ -955,18 +905,22 @@ static void RegisterClassVarAsProperty(ClassVariableAnalyzer& variable)
     {
         result->reg_ << "    // " << variable.GetLocation() << "\n";
 
-        bool outSuccess;
-        string asType = CppTypeToAS(variable.GetType(), false, outSuccess);
+        string asType;
+
+        try
+        {
+            asType = CppTypeToAS(variable.GetType(), TypeUsage::ClassStaticVariable);
+        }
+        catch (const Exception& e)
+        {
+            result->reg_ << "    // " << e.what() << "\n";
+            return;
+        }
+
         if (variable.GetType().IsConst())
             asType = "const " + asType;
 
         asType = ReplaceAll(asType, "struct ", "");
-
-        if (!outSuccess)
-        {
-            result->reg_ << "    // " << GetLastErrorMessage() << "\n";
-            return;
-        }
 
         string className = variable.GetClassName();
 
@@ -997,12 +951,15 @@ static void RegisterClassVarAsProperty(ClassVariableAnalyzer& variable)
             return;
         }
 
-        bool outSuccess;
-        string propType = CppTypeToAS(variable.GetType(), false, outSuccess);
-
-        if (!outSuccess)
+        string propType;
+        
+        try
         {
-            result->reg_ << "    // " << GetLastErrorMessage() << "\n";
+            propType = CppTypeToAS(variable.GetType(), TypeUsage::ClassVariable);
+        }
+        catch (const Exception& e)
+        {
+            result->reg_ << "    // " << e.what() << "\n";
             return;
         }
 
