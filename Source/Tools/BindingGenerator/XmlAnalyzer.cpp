@@ -204,6 +204,26 @@ string ExtractDefinition(xml_node memberdef)
     return result;
 }
 
+static string BeautifyDefinition(const string& definition)
+{
+    string result = definition;
+
+    result = ReplaceAll(result, " **", "** ");
+    result = ReplaceAll(result, " &&", "&& ");
+    result = ReplaceAll(result, " *&", "*& ");
+    result = ReplaceAll(result, " *", "* ");
+    result = ReplaceAll(result, " &", "& ");
+
+    while (Contains(result, "  "))
+        result = ReplaceAll(result, "  ", " ");
+
+    result = ReplaceAll(result, " )", ")");
+    result = ReplaceAll(result, "< ", "<");
+    result = ReplaceAll(result, " >", ">");
+
+    return result;
+}
+
 string ExtractArgsstring(xml_node memberdef)
 {
     assert(IsMemberdef(memberdef));
@@ -504,6 +524,7 @@ string GlobalVariableAnalyzer::GetLocation() const
     if (IsStatic())
         result = "static " + result;
 
+    result = BeautifyDefinition(result);
     result += " | File: " + GetHeaderFile();
 
     return result;
@@ -865,7 +886,7 @@ string ClassFunctionAnalyzer::GetContainsClassName() const
     return result;
 }
 
-string GetFunctionLocation(xml_node memberdef)
+string GetFunctionDeclaration(xml_node memberdef)
 {
     assert(IsMemberdef(memberdef));
     assert(ExtractKind(memberdef) == "function");
@@ -882,8 +903,6 @@ string GetFunctionLocation(xml_node memberdef)
 
     if (IsExplicit(memberdef))
         result = "explicit " + result;
-
-    result += " | File: " + ExtractHeaderFile(memberdef);
 
     if (IsTemplate(memberdef))
     {
@@ -906,22 +925,17 @@ string GetFunctionLocation(xml_node memberdef)
 
         result = "template<" + t + "> " + result;
     }
-    
+
     result = RemoveFirst(result, "URHO3D_API ");
     result = RemoveFirst(result, " URHO3D_API");
-
-    result = ReplaceAll(result, " **", "** ");
-    result = ReplaceAll(result, " &&", "&& ");
-    result = ReplaceAll(result, " *&", "*& ");
-    result = ReplaceAll(result, " *", "* ");
-    result = ReplaceAll(result, " &", "& ");
-    result = ReplaceAll(result, " )", ")");
-    result = ReplaceAll(result, "< ", "<");
-    
-    while (Contains(result, " >"))
-        result = ReplaceAll(result, " >", ">");
+    result = BeautifyDefinition(result);
 
     return result;
+}
+
+string GetFunctionLocation(xml_node memberdef)
+{
+    return GetFunctionDeclaration(memberdef) + " | File: " + ExtractHeaderFile(memberdef);
 }
 
 bool ClassFunctionAnalyzer::IsConst() const
@@ -1016,6 +1030,7 @@ string ClassVariableAnalyzer::GetLocation() const
     assert(match.size() == 3);
     string result =  match[1].str() + match[2].str();
 
+    result = BeautifyDefinition(result);
     result += " | File: " + GetHeaderFile();
 
     if (!classAnalyzer_.usingLocation_.empty())
