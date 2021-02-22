@@ -172,6 +172,8 @@ if (URHO3D_GENERATEBINDINGS)
                             "AngelScript/GeneratedObjectTypes.cpp"
                             "AngelScript/GeneratedDefaultConstructors.cpp"
                             "AngelScript/GeneratedClasses.cpp"
+                            "AngelScript/GeneratedClassMembers.cpp"
+                            "AngelScript/GeneratedClassMembers.h"
                             "AngelScript/Generated_Members_A.cpp"
                             "AngelScript/Generated_Members_B.cpp"
                             "AngelScript/Generated_Members_Constraint.cpp"
@@ -576,7 +578,7 @@ foreach (SUB ${OPTIONAL_SUBS})
         list (INSERT URHO_HEADERS ${FOUND_INDEX} "#if URHO3D_${SUB}")
     endif ()
 endforeach ()
-string (REGEX REPLACE "include/[^;]+(DebugNew|Direct3D|GraphicsImpl|IKConverters|ODBC|OpenGL|Precompiled|SQLite|ToluaUtils|Urho3D|librevision)[^;]+;" "" URHO_HEADERS "${URHO_HEADERS};")
+string (REGEX REPLACE "include/[^;]+(DebugNew|Direct3D|GraphicsImpl|IKConverters|ODBC|OpenGL|Precompiled|SQLite|ToluaUtils|Urho3D|librevision|wrap16\.h|wrap\.h)[^;]*;" "" URHO_HEADERS "${URHO_HEADERS};")
 string (REGEX REPLACE "include/([^;]+)" "#include <\\1>" URHO_HEADERS "${GENERATED_HEADERS};;${URHO_HEADERS}")
 string (REPLACE ";" \n URHO_HEADERS "${URHO_HEADERS}")
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/Urho3DAll.h.in ${CMAKE_CURRENT_BINARY_DIR}/Urho3DAll.h)
