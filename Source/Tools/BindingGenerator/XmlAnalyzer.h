@@ -165,6 +165,10 @@ string JoinParamsNames(xml_node memberdef, bool skipContext = false);
 //     ...
 string GetFunctionDeclaration(xml_node memberdef);
 
+// <memberdef kind="variable">
+//     ...
+string GetVariableDeclaration(xml_node memberdef);
+
 // <memberdef kind="function">
 //     ...
 string GetFunctionLocation(xml_node memberdef);
@@ -247,11 +251,11 @@ public:
     bool IsStatic() const { return ::IsStatic(memberdef_); }
     TypeAnalyzer GetType() const { return ExtractType(memberdef_); }
     bool IsArray() const { return StartsWith(ExtractArgsstring(memberdef_), "["); }
-    string GetLocation() const;
+    string GetLocation() const { return GetVariableDeclaration(memberdef_) + " | File: " + GetHeaderFile(); }
 };
 
-class ClassFunctionAnalyzer;
-class ClassVariableAnalyzer;
+class MethodAnalyzer;
+class FieldAnalyzer;
 
 // <compounddef kind="class|struct">...</compounddef>
 class ClassAnalyzer
@@ -265,6 +269,8 @@ private:
 public:
     string usingLocation_;
 
+    xml_node GetCompounddef() const { return compounddef_; }
+
     ClassAnalyzer(xml_node compounddef, const TemplateSpecialization& specialization = {});
 
     const TemplateSpecialization& GetSpecialization() const { return specialization_; }
@@ -272,16 +278,22 @@ public:
     string GetClassName() const;
     string GetComment() const { return ExtractComment(compounddef_); }
     string GetHeaderFile() const { return ExtractHeaderFile(compounddef_); }
+    string GetDirName() const;
     string GetKind() const { return ExtractKind(compounddef_); }
     bool IsInternal() const;
     bool IsTemplate() const { return ::IsTemplate(compounddef_); }
-    vector<ClassFunctionAnalyzer> GetFunctions() const;
-    vector<ClassVariableAnalyzer> GetVariables() const;
-    bool ContainsFunction(const string& name) const;
-    shared_ptr<ClassFunctionAnalyzer> GetFunction(const string& name) const;
-    int NumFunctions(const string& name) const;
+    vector<MethodAnalyzer> GetAllMethods() const;
+    vector<MethodAnalyzer> GetAllPublicMethods() const;
+    vector<MethodAnalyzer> GetThisPublicMethods() const;
+    vector<MethodAnalyzer> GetThisPublicStaticMethods() const;
+    vector<FieldAnalyzer> GetAllFields() const;
+    vector<FieldAnalyzer> GetThisPublicFields() const;
+    vector<FieldAnalyzer> GetThisPublicStaticFields() const;
+    bool ContainsMethod(const string& name) const;
+    shared_ptr<MethodAnalyzer> GetMethod(const string& name) const;
+    int NumMethods(const string& name) const;
     bool IsRefCounted() const;
-    bool HasThisDestructor() const { return ContainsFunction("~" + GetClassName()); }
+    bool HasThisDestructor() const { return ContainsMethod("~" + GetClassName()); }
     bool HasThisConstructor() const;
     bool IsAbstract() const;
     string GetLocation() const { return GetKind() + " " + GetClassName() + " | File: " + GetHeaderFile(); }
@@ -291,16 +303,29 @@ public:
     shared_ptr<ClassAnalyzer> GetBaseClass() const;
     vector<ClassAnalyzer> GetBaseClasses() const;
     vector<ClassAnalyzer> GetAllBaseClasses() const;
+
+    vector<ClassAnalyzer> GetDerivedClasses() const;
+    vector<ClassAnalyzer> GetAllDerivedClasses() const;
     
     // Return null if default constructor is implicitly-declared.
     // Return pointer if default constructor is deleted
-    shared_ptr<ClassFunctionAnalyzer> GetDefinedThisDefaultConstructor() const;
+    shared_ptr<MethodAnalyzer> GetDefinedThisDefaultConstructor() const;
 
-    vector<ClassFunctionAnalyzer> GetThisNonDefaultConstructors() const;
+    vector<MethodAnalyzer> GetThisNonDefaultConstructors() const;
 
     // Return null if destructor is implicitly-declared.
     // Return pointer if destructor is deleted
-    shared_ptr<ClassFunctionAnalyzer> GetDefinedThisDestructor() const { return GetFunction("~" + GetClassName()); }
+    shared_ptr<MethodAnalyzer> GetDefinedThisDestructor() const { return GetMethod("~" + GetClassName()); }
+
+    int GetInherianceDeep(int counter = 0) const;
+    
+    vector<string> GetAllPublicMembersRefids() const;
+
+    // Base class members that were hidden in this class (c++ declarations)
+    vector<string> GetHiddenMethods() const;
+    vector<string> GetHiddenStaticMethods() const;
+    vector<string> GetHiddenFields() const;
+    vector<string> GetHiddenStaticFields() const;
 };
 
 // <memberdef kind="function">...</memberdef>
@@ -333,12 +358,12 @@ public:
 // <compounddef kind="class|struct">
 //     <sectiondef>
 //         <memberdef kind="function">...</memberdef>
-class ClassFunctionAnalyzer : public FunctionAnalyzer
+class MethodAnalyzer : public FunctionAnalyzer
 {
     ClassAnalyzer classAnalyzer_;
 
 public:
-    ClassFunctionAnalyzer(const ClassAnalyzer& classAnalyzer, xml_node memberdef, const TemplateSpecialization& specialization = {});
+    MethodAnalyzer(const ClassAnalyzer& classAnalyzer, xml_node memberdef, const TemplateSpecialization& specialization = {});
 
     ClassAnalyzer GetClass() const { return classAnalyzer_; }
 
@@ -351,15 +376,20 @@ public:
 
     // <memberdef>
     // <reimplements refid="..."></reimplements>
-    shared_ptr<ClassFunctionAnalyzer> Reimplements() const;
+    shared_ptr<MethodAnalyzer> Reimplements() const;
 
     string GetClassName() const { return classAnalyzer_.GetClassName(); }
-    string GetContainsClassName() const; // May this function defined in parent class, so return name o class, real define this function
+    string GetContainsClassName() const; // May this function defined in parent class, so return name oа class, real define this function
     bool IsStatic() const { return ::IsStatic(memberdef_); }
     bool IsPublic() const { return ExtractProt(memberdef_) == "public"; }
+
+    // Constructor can have different name https://github.com/doxygen/doxygen/issues/8402
     bool IsThisConstructor() const { return GetName() == GetClassName(); }
+    
     bool IsThisDefaultConstructor() const { return IsThisConstructor() && ExtractCleanedFunctionArgsstring(memberdef_).empty(); }
     bool IsThisNonDefaultConstructor() const { return IsThisConstructor() && !ExtractCleanedFunctionArgsstring(memberdef_).empty(); }
+    bool IsConstructor() const;
+    bool IsDestructor() const;
     bool IsParentConstructor() const;
     bool IsThisDestructor() const { return GetName() == "~" + GetClassName(); }
     bool IsParentDestructor() const;
@@ -369,6 +399,8 @@ public:
     bool IsDeleted() const { return EndsWith(ExtractArgsstring(memberdef_), "=delete"); }
     bool IsConsversionOperator() const { return StartsWith(GetName(), "operator "); }
 
+    bool IsThisMethod() const { return GetContainsClassName() == GetClassName(); } // Defined in this class
+
     string GetDeclaration() const { return JoinNonEmpty({ classAnalyzer_.usingLocation_, GetFunctionDeclaration(memberdef_) }, " | "); }
     string GetLocation() const override { return JoinNonEmpty({ classAnalyzer_.usingLocation_, GetFunctionLocation(memberdef_) }, " | "); }
 };
@@ -376,13 +408,13 @@ public:
 // <compounddef kind="class|struct">
 //     <sectiondef>
 //         <memberdef kind="variable">...</memberdef>
-class ClassVariableAnalyzer
+class FieldAnalyzer
 {
     ClassAnalyzer classAnalyzer_;
     xml_node memberdef_;
 
 public:
-    ClassVariableAnalyzer(ClassAnalyzer classAnalyzer, xml_node memberdef);
+    FieldAnalyzer(ClassAnalyzer classAnalyzer, xml_node memberdef);
 
     bool IsStatic() const { return ::IsStatic(memberdef_); }
     TypeAnalyzer GetType() const { return ExtractType(memberdef_); }
@@ -390,6 +422,7 @@ public:
     string GetComment() const { return ExtractComment(memberdef_); }
     bool IsPublic() const { return ExtractProt(memberdef_) == "public"; }
     string GetHeaderFile() const { return ExtractHeaderFile(memberdef_); }
+    string GetDeclaration() const { return GetVariableDeclaration(memberdef_); }
     string GetLocation() const;
     string GetClassName() const { return classAnalyzer_.GetClassName(); }
     bool IsArray() const { return StartsWith(ExtractArgsstring(memberdef_), "["); };

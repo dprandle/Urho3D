@@ -34,6 +34,21 @@ if (HAVE_STDINT_H)
   add_definitions (-DHAVE_STDINT_H)
 endif ()
 
+# For AngelScript big files
+if (MSVC)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /bigobj")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /bigobj")
+elseif (MINGW)
+    if (URHO3D_64BIT)
+        set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wa,-mbig-obj")
+        set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wa,-mbig-obj")
+    elseif (CMAKE_BUILD_TYPE MATCHES Debug)
+        SET_SOURCE_FILES_PROPERTIES(AngelScript/Generated_Classes.cpp PROPERTIES COMPILE_FLAGS -Os)
+        SET_SOURCE_FILES_PROPERTIES(AngelScript/Generated_Classes.cpp PROPERTIES LINK_FLAGS -Os)
+        SET_SOURCE_FILES_PROPERTIES(AngelScript/Generated_Classes.cpp PROPERTIES STATIC_LIBRARY_FLAGS -Os)
+    endif ()
+endif ()
+
 # Generate JSON compilation database format specification
 if (URHO3D_CLANG_TOOLS OR URHO3D_BINDINGS)
     set (CMAKE_EXPORT_COMPILE_COMMANDS 1)
@@ -168,46 +183,14 @@ if (URHO3D_GENERATEBINDINGS)
     set (XML_AST_DIR "${CMAKE_BINARY_DIR}/Source/Tools/BindingGenerator/generated/xml")
     set (BINDING_GENERATOR_PATH "${CMAKE_BINARY_DIR}/bin/tool/BindingGenerator")
 
-    set (AS_GENERATED_FILES "AngelScript/GeneratedEnums.cpp"
-                            "AngelScript/GeneratedObjectTypes.cpp"
-                            "AngelScript/GeneratedDefaultConstructors.cpp"
-                            "AngelScript/GeneratedClasses.cpp"
-                            "AngelScript/GeneratedClassMembers.cpp"
-                            "AngelScript/GeneratedClassMembers.h"
-                            "AngelScript/Generated_Members_A.cpp"
-                            "AngelScript/Generated_Members_B.cpp"
-                            "AngelScript/Generated_Members_Constraint.cpp"
-                            "AngelScript/Generated_Members_Ca_Cm.cpp"
-                            "AngelScript/Generated_Members_Cn_Cz.cpp"
-                            "AngelScript/Generated_Members_D.cpp"
-                            "AngelScript/Generated_Members_E.cpp"
-                            "AngelScript/Generated_Members_F.cpp"
-                            "AngelScript/Generated_Members_G.cpp"
-                            "AngelScript/Generated_Members_H.cpp"
-                            "AngelScript/Generated_Members_I.cpp"
-                            "AngelScript/Generated_Members_J.cpp"
-                            "AngelScript/Generated_Members_K.cpp"
-                            "AngelScript/Generated_Members_L.cpp"
-                            "AngelScript/Generated_Members_M.cpp"
-                            "AngelScript/Generated_Members_N.cpp"
-                            "AngelScript/Generated_Members_O.cpp"
-                            "AngelScript/Generated_Members_P.cpp"
-                            "AngelScript/Generated_Members_Q.cpp"
-                            "AngelScript/Generated_Members_R.cpp"
-                            "AngelScript/Generated_Members_Sa_Sm.cpp"
-                            "AngelScript/Generated_Members_Sn_Sz.cpp"
-                            "AngelScript/Generated_Members_Ta_Tm.cpp"
-                            "AngelScript/Generated_Members_Tn_Tz.cpp"
-                            "AngelScript/Generated_Members_U.cpp"
-                            "AngelScript/Generated_Members_V.cpp"
-                            "AngelScript/Generated_Members_W.cpp"
-                            "AngelScript/Generated_Members_X.cpp"
-                            "AngelScript/Generated_Members_Y.cpp"
-                            "AngelScript/Generated_Members_Z.cpp"
-                            "AngelScript/Generated_Members_Other.cpp"
-                            "AngelScript/GeneratedGlobalVariables.cpp"
-                            "AngelScript/GeneratedGlobalFunctions.cpp"
-                            "AngelScript/GeneratedIncludes.h"
+    set (AS_GENERATED_FILES "AngelScript/Generated_Enums.cpp"
+                            "AngelScript/Generated_ObjectTypes.cpp"
+                            "AngelScript/Generated_DefaultConstructors.cpp"
+                            "AngelScript/Generated_Classes.cpp"
+                            "AngelScript/Generated_GlobalVariables.cpp"
+                            "AngelScript/Generated_GlobalFunctions.cpp"
+                            "AngelScript/Generated_Includes.h"
+                            "AngelScript/Generated_Members.h"
                             "AngelScript/Generated_Templates.h")
 
     set (AS_GENERATED_FILES_FULL_PATHS "${AS_GENERATED_FILES}")
@@ -399,6 +382,9 @@ foreach (DEFINE URHO3D_STATIC_DEFINE URHO3D_OPENGL URHO3D_D3D11 URHO3D_SSE URHO3
         set (APPENDIX "${APPENDIX}#define ${DEFINE}\n")
     endif ()
 endforeach()
+if (URHO3D_FORCE_AS_MAX_PORTABILITY)
+    set (APPENDIX "${APPENDIX}#define AS_MAX_PORTABILITY\n")
+endif ()
 generate_export_header (${TARGET_NAME} EXPORT_MACRO_NAME URHO3D_API EXPORT_FILE_NAME Urho3D.h.new CUSTOM_CONTENT_FROM_VARIABLE APPENDIX)
 file (READ Precompiled.h COPYRIGHT LIMIT 1128)
 file (READ ${CMAKE_CURRENT_BINARY_DIR}/Urho3D.h.new EXPORT_HEADER)
@@ -578,7 +564,7 @@ foreach (SUB ${OPTIONAL_SUBS})
         list (INSERT URHO_HEADERS ${FOUND_INDEX} "#if URHO3D_${SUB}")
     endif ()
 endforeach ()
-string (REGEX REPLACE "include/[^;]+(DebugNew|Direct3D|GraphicsImpl|IKConverters|ODBC|OpenGL|Precompiled|SQLite|ToluaUtils|Urho3D|librevision|wrap16\.h|wrap\.h)[^;]*;" "" URHO_HEADERS "${URHO_HEADERS};")
+string (REGEX REPLACE "include/[^;]+(DebugNew|Direct3D|GraphicsImpl|IKConverters|ODBC|OpenGL|Precompiled|SQLite|ToluaUtils|Urho3D|librevision|wrap\.h|aswrappedcall\.h)[^;]*;" "" URHO_HEADERS "${URHO_HEADERS};")
 string (REGEX REPLACE "include/([^;]+)" "#include <\\1>" URHO_HEADERS "${GENERATED_HEADERS};;${URHO_HEADERS}")
 string (REPLACE ";" \n URHO_HEADERS "${URHO_HEADERS}")
 configure_file (${CMAKE_CURRENT_SOURCE_DIR}/Urho3DAll.h.in ${CMAKE_CURRENT_BINARY_DIR}/Urho3DAll.h)
@@ -647,4 +633,8 @@ if (URHO3D_SCP_TO_TARGET)
     # Ensure SCP is the last command
     add_custom_command (TARGET ${TARGET_NAME} POST_BUILD COMMAND scp $<TARGET_FILE:${TARGET_NAME}> ${URHO3D_SCP_TO_TARGET} || exit 0
         COMMENT "Scp-ing Urho3D library to target system")
+endif ()
+
+if (URHO3D_FORCE_AS_MAX_PORTABILITY)
+    add_definitions (-DAS_MAX_PORTABILITY)
 endif ()

@@ -27,6 +27,8 @@
 #include <cassert>
 #include <regex>
 
+extern string _sourceDir;
+
 string RemoveRefs(xml_node node)
 {
     assert(node.name() == string("type") || node.name() == string("defval") || node.name() == string("para"));
@@ -132,7 +134,7 @@ TypeAnalyzer ParamAnalyzer::GetType() const
 string ParamAnalyzer::GetDeclname() const
 {
     string result = node_.child("declname").child_value();
-    assert(!result.empty());
+    //assert(!result.empty()); TODO
 
     return result;
 }
@@ -213,6 +215,17 @@ static string BeautifyDefinition(const string& definition)
     result = ReplaceAll(result, " *&", "*& ");
     result = ReplaceAll(result, " *", "* ");
     result = ReplaceAll(result, " &", "& ");
+    
+    result = ReplaceAll(result, "=", " = ");
+    result = ReplaceAll(result, " =  = ", "==");
+    result = ReplaceAll(result, "! = ", "!=");
+    result = ReplaceAll(result, "+ = ", "+=");
+    result = ReplaceAll(result, "- = ", "-=");
+    result = ReplaceAll(result, "* = ", "*=");
+    result = ReplaceAll(result, "/ = ", "/=");
+    result = ReplaceAll(result, "operator = ", "operator=");
+
+    result = ReplaceAll(result, "operator", "operator ");
 
     while (Contains(result, "  "))
         result = ReplaceAll(result, "  ", " ");
@@ -220,6 +233,8 @@ static string BeautifyDefinition(const string& definition)
     result = ReplaceAll(result, " )", ")");
     result = ReplaceAll(result, "< ", "<");
     result = ReplaceAll(result, " >", ">");
+
+    result = ReplaceAll(result, "template<", "template <");
 
     return result;
 }
@@ -413,10 +428,8 @@ string ExtractComment(xml_node node)
 
 static string HeaderFullPathToRelative(const string& fullPath)
 {
-    size_t pos = fullPath.rfind("Source/Urho3D");
-    assert(pos != string::npos);
-
-    return ".." + fullPath.substr(pos + strlen("Source/Urho3D"));
+    assert(StartsWith(fullPath, _sourceDir + "/Source/Urho3D"));
+    return ".." + CutStart(fullPath, _sourceDir + "/Source/Urho3D");
 }
 
 string ExtractHeaderFile(xml_node node)
@@ -511,25 +524,6 @@ GlobalVariableAnalyzer::GlobalVariableAnalyzer(xml_node memberdef)
     assert(ExtractKind(memberdef) == "variable");
 }
 
-string GlobalVariableAnalyzer::GetLocation() const
-{
-    string result = ExtractDefinition(memberdef_);
-
-    result = RemoveFirst(result, "URHO3D_API ");
-    result = RemoveFirst(result, " URHO3D_API");
-
-    assert(Contains(result, " Urho3D::"));
-    result = ReplaceFirst(result, " Urho3D::", " ");
-
-    if (IsStatic())
-        result = "static " + result;
-
-    result = BeautifyDefinition(result);
-    result += " | File: " + GetHeaderFile();
-
-    return result;
-}
-
 // ============================================================================
 
 ClassAnalyzer::ClassAnalyzer(xml_node compounddef, const TemplateSpecialization& specialization)
@@ -544,6 +538,14 @@ string ClassAnalyzer::GetClassName() const
     string compoundname = ExtractCompoundname(compounddef_);
     assert(StartsWith(compoundname, "Urho3D::"));
     return CutStart(compoundname, "Urho3D::");
+}
+
+string ClassAnalyzer::GetDirName() const
+{
+    string str = CutStart(GetHeaderFile(), "../");
+    size_t pos = str.find('/');
+    assert(pos != string::npos);
+    return str.substr(0, pos);
 }
 
 bool ClassAnalyzer::IsInternal() const
@@ -567,7 +569,7 @@ vector<xml_node> ClassAnalyzer::GetMemberdefs() const
     for (xml_node member : listofallmembers.children("member"))
     {
         xml_attribute ambiguityscope = member.attribute("ambiguityscope");
-        if (!ambiguityscope.empty()) // Overridden method from parent class
+        if (!ambiguityscope.empty())
             continue;
 
         string refid = member.attribute("refid").value();
@@ -584,70 +586,279 @@ vector<xml_node> ClassAnalyzer::GetMemberdefs() const
     return result;
 }
 
-vector<ClassFunctionAnalyzer> ClassAnalyzer::GetFunctions() const
+vector<string> ClassAnalyzer::GetAllPublicMembersRefids() const
 {
-    vector<ClassFunctionAnalyzer> result;
-   
-    vector<xml_node> memberdefs = GetMemberdefs();
-    for (xml_node memberdef : memberdefs)
+    vector<string> result;
+
+    xml_node listofallmembers = compounddef_.child("listofallmembers");
+    assert(listofallmembers);
+
+    for (xml_node member : listofallmembers.children("member"))
     {
-        if (ExtractKind(memberdef) == "function")
-            result.push_back(ClassFunctionAnalyzer(*this, memberdef));
+        string prot = member.attribute("prot").value();
+        assert(!prot.empty());
+        if (prot != "public")
+            continue;
+
+        xml_attribute ambiguityscope = member.attribute("ambiguityscope");
+        if (!ambiguityscope.empty())
+            continue;
+
+        string refid = member.attribute("refid").value();
+        assert(!refid.empty());
+
+        result.push_back(refid);
     }
 
     return result;
 }
 
-vector<ClassVariableAnalyzer> ClassAnalyzer::GetVariables() const
+static vector<xml_node> GetHiddenMemberdefs(const ClassAnalyzer& classAnalyzer)
 {
-    vector<ClassVariableAnalyzer> result;
+    vector<string> thisRefids = classAnalyzer.GetAllPublicMembersRefids();
+    vector<ClassAnalyzer> baseClasses = classAnalyzer.GetBaseClasses();
+
+    vector<xml_node> result;
+
+    for (const ClassAnalyzer& baseClass : baseClasses)
+    {
+        vector<string> baseRefids = baseClass.GetAllPublicMembersRefids();
+
+        for (const string& baseRefid : baseRefids)
+        {
+            if (CONTAINS(thisRefids, baseRefid))
+                continue;
+
+            auto it = SourceData::members_.find(baseRefid);
+            if (it == SourceData::members_.end())
+                continue;
+
+            xml_node memberdef = it->second;
+            result.push_back(memberdef);
+        }
+    }
+
+    return result;
+}
+
+vector<string> ClassAnalyzer::GetHiddenMethods() const
+{
+    vector<xml_node> hiddenMemberdefs = GetHiddenMemberdefs(*this);
+
+    vector<string> result;
+
+    for (xml_node memberdef : hiddenMemberdefs)
+    {
+        if (ExtractKind(memberdef) == "function" && !IsStatic(memberdef))
+            result.push_back(GetFunctionDeclaration(memberdef));
+    }
+
+    sort(result.begin(), result.end());
+    return result;
+}
+
+vector<string> ClassAnalyzer::GetHiddenStaticMethods() const
+{
+    vector<xml_node> hiddenMemberdefs = GetHiddenMemberdefs(*this);
+
+    vector<string> result;
+
+    for (xml_node memberdef : hiddenMemberdefs)
+    {
+        if (ExtractKind(memberdef) == "function" && IsStatic(memberdef))
+            result.push_back(GetFunctionDeclaration(memberdef));
+    }
+
+    sort(result.begin(), result.end());
+    return result;
+}
+
+vector<string> ClassAnalyzer::GetHiddenFields() const
+{
+    vector<xml_node> hiddenMemberdefs = GetHiddenMemberdefs(*this);
+
+    vector<string> result;
+
+    for (xml_node memberdef : hiddenMemberdefs)
+    {
+        if (ExtractKind(memberdef) == "variable" && !IsStatic(memberdef))
+            result.push_back(GetVariableDeclaration(memberdef));
+    }
+
+    sort(result.begin(), result.end());
+    return result;
+}
+
+vector<string> ClassAnalyzer::GetHiddenStaticFields() const
+{
+    vector<xml_node> hiddenMemberdefs = GetHiddenMemberdefs(*this);
+
+    vector<string> result;
+
+    for (xml_node memberdef : hiddenMemberdefs)
+    {
+        if (ExtractKind(memberdef) == "variable" && IsStatic(memberdef))
+            result.push_back(GetVariableDeclaration(memberdef));
+    }
+
+    sort(result.begin(), result.end());
+    return result;
+}
+
+int ClassAnalyzer::GetInherianceDeep(int counter) const
+{
+    vector<ClassAnalyzer> baseClasses = GetBaseClasses();
+
+    int result = counter;
+
+    for (const ClassAnalyzer& baseClass : baseClasses)
+    {
+        int ret = baseClass.GetInherianceDeep(counter + 1);
+        if (ret > result)
+            result = ret;
+    }
+
+    return result;
+}
+
+vector<MethodAnalyzer> ClassAnalyzer::GetAllMethods() const
+{
+    vector<MethodAnalyzer> result;
+   
+    vector<xml_node> memberdefs = GetMemberdefs();
+    for (xml_node memberdef : memberdefs)
+    {
+        if (ExtractKind(memberdef) == "function")
+            result.push_back(MethodAnalyzer(*this, memberdef));
+    }
+
+    return result;
+}
+
+vector<MethodAnalyzer> ClassAnalyzer::GetAllPublicMethods() const
+{
+    vector<MethodAnalyzer> result;
+
+    vector<xml_node> memberdefs = GetMemberdefs();
+    for (xml_node memberdef : memberdefs)
+    {
+        if (ExtractKind(memberdef) == "function" && ExtractProt(memberdef) == "public")
+            result.push_back(MethodAnalyzer(*this, memberdef));
+    }
+
+    return result;
+}
+
+vector<MethodAnalyzer> ClassAnalyzer::GetThisPublicMethods() const
+{
+    vector<MethodAnalyzer> result;
+
+    xml_node sectiondef = FindSectiondef(compounddef_, "public-func");
+
+    for (xml_node memberdef : sectiondef.children("memberdef"))
+    {
+        MethodAnalyzer methodAnalyzer(*this, memberdef);
+        result.push_back(methodAnalyzer);
+    }
+
+    return result;
+}
+
+vector<MethodAnalyzer> ClassAnalyzer::GetThisPublicStaticMethods() const
+{
+    vector<MethodAnalyzer> result;
+
+    xml_node sectiondef = FindSectiondef(compounddef_, "public-static-func");
+
+    for (xml_node memberdef : sectiondef.children("memberdef"))
+    {
+        MethodAnalyzer methodAnalyzer(*this, memberdef);
+        result.push_back(methodAnalyzer);
+    }
+
+    return result;
+}
+
+vector<FieldAnalyzer> ClassAnalyzer::GetAllFields() const
+{
+    vector<FieldAnalyzer> result;
 
     vector<xml_node> memberdefs = GetMemberdefs();
 
     for (xml_node memberdef : memberdefs)
     {
         if (ExtractKind(memberdef) == "variable")
-            result.push_back(ClassVariableAnalyzer(*this, memberdef));
+            result.push_back(FieldAnalyzer(*this, memberdef));
     }
 
     return result;
 }
 
-bool ClassAnalyzer::ContainsFunction(const string& name) const
+vector<FieldAnalyzer> ClassAnalyzer::GetThisPublicFields() const
 {
-    vector<ClassFunctionAnalyzer> functions = GetFunctions();
+    vector<FieldAnalyzer> result;
 
-    for (const ClassFunctionAnalyzer& function : functions)
+    xml_node sectiondef = FindSectiondef(compounddef_, "public-attrib");
+
+    for (xml_node memberdef : sectiondef.children("memberdef"))
     {
-        if (function.GetName() == name)
+        FieldAnalyzer fieldAnalyzer(*this, memberdef);
+        result.push_back(fieldAnalyzer);
+    }
+
+    return result;
+}
+
+vector<FieldAnalyzer> ClassAnalyzer::GetThisPublicStaticFields() const
+{
+    vector<FieldAnalyzer> result;
+
+    xml_node sectiondef = FindSectiondef(compounddef_, "public-static-attrib");
+
+    for (xml_node memberdef : sectiondef.children("memberdef"))
+    {
+        FieldAnalyzer fieldAnalyzer(*this, memberdef);
+        result.push_back(fieldAnalyzer);
+    }
+
+    return result;
+}
+
+bool ClassAnalyzer::ContainsMethod(const string& name) const
+{
+    vector<MethodAnalyzer> methods = GetAllMethods();
+
+    for (const MethodAnalyzer& method : methods)
+    {
+        if (method.GetName() == name)
             return true;
     }
 
     return false;
 }
 
-shared_ptr<ClassFunctionAnalyzer> ClassAnalyzer::GetFunction(const string& name) const
+shared_ptr<MethodAnalyzer> ClassAnalyzer::GetMethod(const string& name) const
 {
-    vector<ClassFunctionAnalyzer> functions = GetFunctions();
+    vector<MethodAnalyzer> methods = GetAllMethods();
 
-    for (const ClassFunctionAnalyzer& function : functions)
+    for (const MethodAnalyzer& method : methods)
     {
-        if (function.GetName() == name)
-            return make_shared<ClassFunctionAnalyzer>(function);
+        if (method.GetName() == name)
+            return make_shared<MethodAnalyzer>(method);
     }
 
     return nullptr;
 }
 
-int ClassAnalyzer::NumFunctions(const string& name) const
+int ClassAnalyzer::NumMethods(const string& name) const
 {
     int result = 0;
 
-    vector<ClassFunctionAnalyzer> functions = GetFunctions();
+    vector<MethodAnalyzer> methods = GetAllMethods();
 
-    for (const ClassFunctionAnalyzer& function : functions)
+    for (const MethodAnalyzer& method : methods)
     {
-        if (function.GetName() == name)
+        if (method.GetName() == name)
             result++;
     }
 
@@ -656,20 +867,20 @@ int ClassAnalyzer::NumFunctions(const string& name) const
 
 bool ClassAnalyzer::IsAbstract() const
 {
-    vector<ClassFunctionAnalyzer> functions = GetFunctions();
+    vector<MethodAnalyzer> methods = GetAllMethods();
 
-    for (const ClassFunctionAnalyzer& function : functions)
+    for (const MethodAnalyzer& method : methods)
     {
-        if (function.IsPureVirtual())
+        if (method.IsPureVirtual())
         {
             if (!IsRefCounted())
                 return true;
 
             // Some pure virtual functions is implemented by URHO3D_OBJECT
-            string name = function.GetName();
+            string name = method.GetName();
             if (name == "GetType" || name == "GetTypeInfo" || name == "GetTypeName")
             {
-                if (ContainsFunction("URHO3D_OBJECT"))
+                if (ContainsMethod("URHO3D_OBJECT"))
                     continue;
             }
 
@@ -685,14 +896,14 @@ bool ClassAnalyzer::AllFloats() const
     if (Contains(GetComment(), "ALL_FLOATS")) // TODO: remove
         return true;
 
-    vector<ClassVariableAnalyzer> variables = GetVariables();
+    vector<FieldAnalyzer> fields = GetAllFields();
 
-    for (const ClassVariableAnalyzer& variable : variables)
+    for (const FieldAnalyzer& field : fields)
     {
-        if (variable.IsStatic())
+        if (field.IsStatic())
             continue;
 
-        string type = variable.GetType().ToString();
+        string type = field.GetType().ToString();
         if (type != "float" && type != "double")
             return false;
     }
@@ -705,14 +916,14 @@ bool ClassAnalyzer::AllInts() const
     if (Contains(GetComment(), "ALL_INTS")) // TODO: remove
         return true;
 
-    vector<ClassVariableAnalyzer> variables = GetVariables();
+    vector<FieldAnalyzer> fields = GetAllFields();
 
-    for (const ClassVariableAnalyzer& variable : variables)
+    for (const FieldAnalyzer& field : fields)
     {
-        if (variable.IsStatic())
+        if (field.IsStatic())
             continue;
 
-        string type = variable.GetType().ToString();
+        string type = field.GetType().ToString();
         if (type != "int" && type != "unsigned")
             return false;
     }
@@ -769,12 +980,26 @@ vector<ClassAnalyzer> ClassAnalyzer::GetBaseClasses() const
     return result;
 }
 
-static void RecursivelyGetBaseClasses(const ClassAnalyzer& analyzer, vector<ClassAnalyzer>& outResult)
+inline bool Contains(const vector<ClassAnalyzer>& classes, const ClassAnalyzer& cl)
+{
+    for (const ClassAnalyzer& c : classes)
+    {
+        // Comparison without template specialization
+        if (c.GetCompounddef() == cl.GetCompounddef())
+            return true;
+    }
+
+    return false;
+}
+
+static void RecursivelyGetBaseClasses(const ClassAnalyzer& analyzer, vector<ClassAnalyzer>& result)
 {
     for (const ClassAnalyzer& baseClass : analyzer.GetBaseClasses())
     {
-        outResult.push_back(baseClass);
-        RecursivelyGetBaseClasses(baseClass, outResult);
+        if (!Contains(result, baseClass))
+            result.push_back(baseClass);
+
+        RecursivelyGetBaseClasses(baseClass, result);
     }
 }
 
@@ -787,13 +1012,54 @@ vector<ClassAnalyzer> ClassAnalyzer::GetAllBaseClasses() const
     return result;
 }
 
+vector<ClassAnalyzer> ClassAnalyzer::GetDerivedClasses() const
+{
+    vector<ClassAnalyzer> result;
+
+    for (xml_node basecompoundref : compounddef_.children("derivedcompoundref"))
+    {
+        string refid = basecompoundref.attribute("refid").value();
+        if (refid.empty()) // Type from ThirdParty lib
+            continue;
+
+        auto it = SourceData::classesByID_.find(refid);
+        if (it == SourceData::classesByID_.end())
+            continue;
+
+        xml_node compounddef = it->second;
+        result.push_back(ClassAnalyzer(compounddef));
+    }
+
+    return result;
+}
+
+static void RecursivelyGetDerivedClasses(const ClassAnalyzer& analyzer, vector<ClassAnalyzer>& result)
+{
+    for (const ClassAnalyzer& derivedClass : analyzer.GetDerivedClasses())
+    {
+        if (!Contains(result, derivedClass))
+            result.push_back(derivedClass);
+
+        RecursivelyGetDerivedClasses(derivedClass, result);
+    }
+}
+
+vector<ClassAnalyzer> ClassAnalyzer::GetAllDerivedClasses() const
+{
+    vector<ClassAnalyzer> result;
+
+    RecursivelyGetDerivedClasses(*this, result);
+
+    return result;
+}
+
 bool ClassAnalyzer::HasThisConstructor() const
 {
-    vector<ClassFunctionAnalyzer> functions = GetFunctions();
+    vector<MethodAnalyzer> methods = GetAllMethods();
 
-    for (const ClassFunctionAnalyzer& function : functions)
+    for (const MethodAnalyzer& method : methods)
     {
-        if (function.IsThisConstructor())
+        if (method.IsThisConstructor())
             return true;
     }
 
@@ -816,28 +1082,28 @@ bool ClassAnalyzer::IsRefCounted() const
     return false;
 }
 
-shared_ptr<ClassFunctionAnalyzer> ClassAnalyzer::GetDefinedThisDefaultConstructor() const
+shared_ptr<MethodAnalyzer> ClassAnalyzer::GetDefinedThisDefaultConstructor() const
 {
-    vector<ClassFunctionAnalyzer> functions = GetFunctions();
+    vector<MethodAnalyzer> methods = GetAllMethods();
 
-    for (const ClassFunctionAnalyzer& function : functions)
+    for (const MethodAnalyzer& method : methods)
     {
-        if (function.IsThisDefaultConstructor())
-            return make_shared<ClassFunctionAnalyzer>(function);
+        if (method.IsThisDefaultConstructor())
+            return make_shared<MethodAnalyzer>(method);
     }
 
     return nullptr;
 }
 
-vector<ClassFunctionAnalyzer> ClassAnalyzer::GetThisNonDefaultConstructors() const
+vector<MethodAnalyzer> ClassAnalyzer::GetThisNonDefaultConstructors() const
 {
-    vector<ClassFunctionAnalyzer> result;
-    vector<ClassFunctionAnalyzer> functions = GetFunctions();
+    vector<MethodAnalyzer> result;
+    vector<MethodAnalyzer> methods = GetAllMethods();
 
-    for (const ClassFunctionAnalyzer& function : functions)
+    for (const MethodAnalyzer& method : methods)
     {
-        if (function.IsThisNonDefaultConstructor())
-            result.push_back(function);
+        if (method.IsThisNonDefaultConstructor())
+            result.push_back(method);
     }
 
     return result;
@@ -855,7 +1121,7 @@ FunctionAnalyzer::FunctionAnalyzer(xml_node memberdef, const TemplateSpecializat
 
 // ============================================================================
 
-ClassFunctionAnalyzer::ClassFunctionAnalyzer(const ClassAnalyzer& classAnalyzer, xml_node memberdef, const TemplateSpecialization& specialization)
+MethodAnalyzer::MethodAnalyzer(const ClassAnalyzer& classAnalyzer, xml_node memberdef, const TemplateSpecialization& specialization)
     : FunctionAnalyzer(memberdef, specialization)
     , classAnalyzer_(classAnalyzer)
 {
@@ -863,7 +1129,7 @@ ClassFunctionAnalyzer::ClassFunctionAnalyzer(const ClassAnalyzer& classAnalyzer,
     specialization_.insert(classAnalyzer.GetSpecialization().begin(), classAnalyzer.GetSpecialization().end());
 }
 
-string ClassFunctionAnalyzer::GetVirt() const
+string MethodAnalyzer::GetVirt() const
 {
     string result = memberdef_.attribute("virt").value();
     assert(!result.empty());
@@ -871,7 +1137,7 @@ string ClassFunctionAnalyzer::GetVirt() const
     return result;
 }
 
-string ClassFunctionAnalyzer::GetContainsClassName() const
+string MethodAnalyzer::GetContainsClassName() const
 {
     string argsstring = ExtractArgsstring(memberdef_);
     assert(!argsstring.empty());
@@ -882,6 +1148,45 @@ string ClassFunctionAnalyzer::GetContainsClassName() const
     regex_match(prototype, match, regex(".*Urho3D::(.+?)::.*"));
     assert(match.size());
     string result = match[1].str();
+
+    return result;
+}
+
+/*
+string FieldAnalyzer::GetDeclaration() const
+{
+    string definition = ExtractDefinition(memberdef_);
+    assert(!definition.empty());
+
+    // Remove Urho3D::
+    smatch match;
+    regex_match(definition, match, regex("(.*)Urho3D::(.+)"));
+    assert(match.size() == 3);
+    string result = match[1].str() + match[2].str();
+
+    result = BeautifyDefinition(result);
+
+    return result;
+}
+*/
+
+string GetVariableDeclaration(xml_node memberdef)
+{
+    assert(IsMemberdef(memberdef));
+    assert(ExtractKind(memberdef) == "variable");
+
+    string result = ExtractDefinition(memberdef);
+
+    result = RemoveFirst(result, "URHO3D_API ");
+    result = RemoveFirst(result, " URHO3D_API");
+
+    assert(Contains(result, " Urho3D::"));
+    result = ReplaceFirst(result, " Urho3D::", " ");
+
+    if (IsStatic(memberdef))
+        result = "static " + result;
+
+    result = BeautifyDefinition(result);
 
     return result;
 }
@@ -938,7 +1243,7 @@ string GetFunctionLocation(xml_node memberdef)
     return GetFunctionDeclaration(memberdef) + " | File: " + ExtractHeaderFile(memberdef);
 }
 
-bool ClassFunctionAnalyzer::IsConst() const
+bool MethodAnalyzer::IsConst() const
 {
     string constAttr = memberdef_.attribute("const").value();
     assert(!constAttr.empty());
@@ -946,7 +1251,7 @@ bool ClassFunctionAnalyzer::IsConst() const
     return constAttr == "yes";
 }
 
-bool ClassFunctionAnalyzer::CanBeGetProperty() const
+bool MethodAnalyzer::CanBeGetProperty() const
 {
     string returnType = GetReturnType().ToString();
 
@@ -959,7 +1264,7 @@ bool ClassFunctionAnalyzer::CanBeGetProperty() const
     return true;
 }
 
-bool ClassFunctionAnalyzer::CanBeSetProperty() const
+bool MethodAnalyzer::CanBeSetProperty() const
 {
     string returnType = GetReturnType().ToString();
 
@@ -972,7 +1277,7 @@ bool ClassFunctionAnalyzer::CanBeSetProperty() const
     return true;
 }
 
-bool ClassFunctionAnalyzer::IsParentDestructor() const
+bool MethodAnalyzer::IsParentDestructor() const
 {
     string functionName = GetName();
     if (!StartsWith(functionName, "~"))
@@ -981,7 +1286,19 @@ bool ClassFunctionAnalyzer::IsParentDestructor() const
     return !IsThisDestructor();
 }
 
-bool ClassFunctionAnalyzer::IsParentConstructor() const
+bool MethodAnalyzer::IsConstructor() const
+{
+    string name = GetName();
+    return ExtractDefinition(memberdef_) == "Urho3D::" + name + "::" + name;
+}
+
+bool MethodAnalyzer::IsDestructor() const
+{
+    string name = GetName();
+    return StartsWith(name, "~");
+}
+
+bool MethodAnalyzer::IsParentConstructor() const
 {
     if (IsThisConstructor())
         return false;
@@ -991,27 +1308,27 @@ bool ClassFunctionAnalyzer::IsParentConstructor() const
     return ExtractDefinition(memberdef_) == "Urho3D::" + name + "::" + name;
 }
 
-shared_ptr<ClassFunctionAnalyzer> ClassFunctionAnalyzer::Reimplements() const
+shared_ptr<MethodAnalyzer> MethodAnalyzer::Reimplements() const
 {
     xml_node reimplements = memberdef_.child("reimplements");
 
     if (!reimplements)
-        return shared_ptr<ClassFunctionAnalyzer>();
+        return shared_ptr<MethodAnalyzer>();
 
     string refid = reimplements.attribute("refid").value();
     assert(!refid.empty());
 
     auto it = SourceData::members_.find(refid);
     if (it == SourceData::members_.end())
-        return shared_ptr<ClassFunctionAnalyzer>();
+        return shared_ptr<MethodAnalyzer>();
 
     xml_node memberdef = it->second;
-    return make_shared<ClassFunctionAnalyzer>(classAnalyzer_, memberdef);
+    return make_shared<MethodAnalyzer>(classAnalyzer_, memberdef);
 }
 
 // ============================================================================
 
-ClassVariableAnalyzer::ClassVariableAnalyzer(ClassAnalyzer classAnalyzer, xml_node memberdef)
+FieldAnalyzer::FieldAnalyzer(ClassAnalyzer classAnalyzer, xml_node memberdef)
     : classAnalyzer_(classAnalyzer)
     , memberdef_(memberdef)
 {
@@ -1019,18 +1336,9 @@ ClassVariableAnalyzer::ClassVariableAnalyzer(ClassAnalyzer classAnalyzer, xml_no
     assert(ExtractKind(memberdef) == "variable");
 }
 
-string ClassVariableAnalyzer::GetLocation() const
+string FieldAnalyzer::GetLocation() const
 {
-    string definition = ExtractDefinition(memberdef_);
-    assert(!definition.empty());
-    
-    // Remove Urho3D::
-    smatch match;
-    regex_match(definition, match, regex("(.*)Urho3D::(.+)"));
-    assert(match.size() == 3);
-    string result =  match[1].str() + match[2].str();
-
-    result = BeautifyDefinition(result);
+    string result = GetDeclaration();
     result += " | File: " + GetHeaderFile();
 
     if (!classAnalyzer_.usingLocation_.empty())
